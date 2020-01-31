@@ -52,17 +52,18 @@ namespace QuantConnect.Securities
         GetMaximumOrderQuantityForTargetValueResult GetMaximumOrderQuantityForTargetValue(GetMaximumOrderQuantityForTargetValueParameters parameters);
 
         /// <summary>
+        /// Get the maximum market order quantity to obtain a delta in the buying power, in account currency, used by a security
+        /// </summary>
+        /// <param name="parameters">An object containing the portfolio, the security and the target buying power delta. Negative delta will reduce
+        /// the securities consumed buying power, positive will increase</param>
+        /// <returns>Returns the maximum allowed market order quantity and if zero, also the reason</returns>
+        GetMaximumOrderQuantityForTargetValueResult GetMaximumOrderQuantityForTargetDeltaBuyingPower(GetMaximumOrderQuantityForTargetValueParameters parameters);
+
+        /// <summary>
         /// Gets the amount of buying power reserved to maintain the specified position
         /// </summary>
         /// <param name="parameters">A parameters object containing the security</param>
         /// <returns>The reserved buying power in account currency</returns>
         ReservedBuyingPowerForPosition GetReservedBuyingPowerForPosition(ReservedBuyingPowerForPositionParameters parameters);
-
-        /// <summary>
-        /// Gets the buying power available for a trade
-        /// </summary>
-        /// <param name="parameters">A parameters object containing the algorithm's potrfolio, security, and order direction</param>
-        /// <returns>The buying power available for the trade</returns>
-        BuyingPower GetBuyingPower(BuyingPowerParameters parameters);
     }
 }

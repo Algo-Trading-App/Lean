@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using QuantConnect.Data;
 using QuantConnect.Interfaces;
+using QuantConnect.Securities;
 
 namespace QuantConnect.Algorithm.CSharp
 {
@@ -130,8 +131,10 @@ namespace QuantConnect.Algorithm.CSharp
             _previousBenchmarkValue = currentValue;
             _previousTime = data.Time;
 
-            // assert algorithm security is the correct one - not the internal one
-            if (security.Leverage != ExpectedLeverage)
+            var expectedQuantity = Portfolio.TotalPortfolioValue * 2 / security.AskPrice - 1;
+            // assert algorithm security is the correct one - not the internal one which uses leverage 1
+            if (security.BuyingPowerModel.GetMaximumOrderQuantityForTargetValue(
+                    new GetMaximumOrderQuantityForTargetValueParameters(Portfolio, security, 1)).Quantity >= expectedQuantity)
             {
                 throw new Exception($"Leverage error - expected: {ExpectedLeverage}, actual: {security.Leverage}");
             }

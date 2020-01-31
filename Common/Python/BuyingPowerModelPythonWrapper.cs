@@ -34,7 +34,7 @@ namespace QuantConnect.Python
         {
             using (Py.GIL())
             {
-                foreach (var attributeName in new[] { "GetBuyingPower", "GetLeverage", "GetMaximumOrderQuantityForTargetValue", "GetReservedBuyingPowerForPosition", "HasSufficientBuyingPowerForOrder", "SetLeverage" })
+                foreach (var attributeName in new[] { "GetMaximumOrderQuantityForTargetDeltaBuyingPower", "GetLeverage", "GetMaximumOrderQuantityForTargetValue", "GetReservedBuyingPowerForPosition", "HasSufficientBuyingPowerForOrder", "SetLeverage" })
                 {
                     if (!model.HasAttr(attributeName))
                     {
@@ -43,19 +43,6 @@ namespace QuantConnect.Python
                 }
             }
             _model = model;
-        }
-
-        /// <summary>
-        /// Gets the buying power available for a trade
-        /// </summary>
-        /// <param name="parameters">A parameters object containing the algorithm's potrfolio, security, and order direction</param>
-        /// <returns>The buying power available for the trade</returns>
-        public BuyingPower GetBuyingPower(BuyingPowerParameters parameters)
-        {
-            using (Py.GIL())
-            {
-                return (_model.GetBuyingPower(parameters) as PyObject).GetAndDispose<BuyingPower>();
-            }
         }
 
         /// <summary>
@@ -81,6 +68,22 @@ namespace QuantConnect.Python
             using (Py.GIL())
             {
                 return (_model.GetMaximumOrderQuantityForTargetValue(parameters)
+                    as PyObject).GetAndDispose<GetMaximumOrderQuantityForTargetValueResult>();
+            }
+        }
+
+        /// <summary>
+        /// Get the maximum market order quantity to obtain a delta in the buying power, in account currency, used by a security
+        /// </summary>
+        /// <param name="parameters">An object containing the portfolio, the security and the target buying power delta. Negative delta will reduce
+        /// the securities consumed buying power, positive will increase</param>
+        /// <returns>Returns the maximum allowed market order quantity and if zero, also the reason</returns>
+        public GetMaximumOrderQuantityForTargetValueResult GetMaximumOrderQuantityForTargetDeltaBuyingPower(
+            GetMaximumOrderQuantityForTargetValueParameters parameters)
+        {
+            using (Py.GIL())
+            {
+                return (_model.GetMaximumOrderQuantityForTargetDeltaBuyingPower(parameters)
                     as PyObject).GetAndDispose<GetMaximumOrderQuantityForTargetValueResult>();
             }
         }

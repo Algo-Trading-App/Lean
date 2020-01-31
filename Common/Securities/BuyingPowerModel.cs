@@ -28,6 +28,7 @@ namespace QuantConnect.Securities
     {
         private decimal _initialMarginRequirement;
         private decimal _maintenanceMarginRequirement;
+
         /// <summary>
         /// The percentage used to determine the required unused buying power for the account.
         /// </summary>
@@ -226,7 +227,7 @@ namespace QuantConnect.Securities
         /// <summary>
         /// The percentage of the holding's absolute cost that must be held in free cash in order to avoid a margin call
         /// </summary>
-        public virtual decimal GetMaintenanceMarginRequirement(Security security)
+        protected virtual decimal GetMaintenanceMarginRequirement(Security security)
         {
             return _maintenanceMarginRequirement;
         }
@@ -306,6 +307,41 @@ namespace QuantConnect.Securities
             }
 
             return new HasSufficientBuyingPowerForOrderResult(true);
+        }
+
+        /// <summary>
+        /// Get the maximum market order quantity to obtain a delta in the buying power, in account currency, used by a security
+        /// </summary>
+        /// <param name="parameters">An object containing the portfolio, the security and the target buying power delta. Negative delta will reduce
+        /// the securities consumed buying power, positive will increase</param>
+        /// <returns>Returns the maximum allowed market order quantity and if zero, also the reason</returns>
+        public virtual GetMaximumOrderQuantityForTargetValueResult GetMaximumOrderQuantityForTargetDeltaBuyingPower(
+            GetMaximumOrderQuantityForTargetValueParameters parameters)
+        {
+            var usedAccountCurrency = parameters.Security.BuyingPowerModel.GetReservedBuyingPowerForPosition(
+            new ReservedBuyingPowerForPositionParameters(parameters.Security)).Value;
+            var targetBuyingPower = 0m;
+            // we have to invert the target sign
+            if (usedAccountCurrency > -parameters.Target)
+            {
+                targetBuyingPower = usedAccountCurrency - (-parameters.Target);
+            }
+
+            var target = 0m;
+            if (parameters.Portfolio.TotalPortfolioValue != 0)
+            {
+                // incoming buying power is factored down by leverage, we need to remove the factor
+                // since GetMaximumOrderQuantityForTargetValue expects leveraged targets, that's why we
+                // divide by 'GetMaintenanceMarginRequirement'
+                target = targetBuyingPower / (parameters.Portfolio.TotalPortfolioValue * GetMaintenanceMarginRequirement(parameters.Security));
+                target *= parameters.Security.Holdings.IsLong ? 1 : -1;
+            }
+
+            return GetMaximumOrderQuantityForTargetValue(
+                new GetMaximumOrderQuantityForTargetValueParameters(parameters.Portfolio,
+                    parameters.Security,
+                    target,
+                    parameters.SilenceNonErrorReasons));
         }
 
         /// <summary>
@@ -469,17 +505,6 @@ namespace QuantConnect.Securities
         {
             var maintenanceMargin = GetMaintenanceMargin(parameters.Security);
             return parameters.ResultInAccountCurrency(maintenanceMargin);
-        }
-
-        /// <summary>
-        /// Gets the buying power available for a trade
-        /// </summary>
-        /// <param name="parameters">A parameters object containing the algorithm's portfolio, security, and order direction</param>
-        /// <returns>The buying power available for the trade</returns>
-        public virtual BuyingPower GetBuyingPower(BuyingPowerParameters parameters)
-        {
-            var marginRemaining = GetMarginRemaining(parameters.Portfolio, parameters.Security, parameters.Direction);
-            return parameters.ResultInAccountCurrency(marginRemaining);
         }
     }
 }
