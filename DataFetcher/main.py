@@ -7,6 +7,7 @@ import os
 import pandas
 from zipfile import ZipFile
 
+# Quandl API Key
 API_KEY = "PgJuoJUUrmZVu75mRUD2"
 
 
@@ -84,9 +85,9 @@ def recieve():
     pika.ConnectionParameters(host="localhost"))
     channel = connection.channel()
 
-    channel.queue_declare(queue="equities")
+    channel.queue_declare(queue="dataFetcher")
 
-    channel.basic_consume(queue="equities", on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(queue="dataFetcher", on_message_callback=callback, auto_ack=True)
 
     print("RECIEVER: [*] Waiting for messages. To exit press CTRL+C")
     channel.start_consuming()
@@ -97,9 +98,9 @@ def send(message):
     pika.ConnectionParameters(host="localhost"))
     channel = connection.channel()
 
-    channel.queue_declare(queue="stock")
+    channel.queue_declare(queue="dataFetcher")
 
-    channel.basic_publish(exchange="", routing_key="equities", body=str(message))
+    channel.basic_publish(exchange="", routing_key="dataFetcher", body=str(message))
     print(" [x] Sent message")
 
     connection.close()

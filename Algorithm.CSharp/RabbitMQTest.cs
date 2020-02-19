@@ -14,10 +14,13 @@
 */
 
 using System.Collections.Generic;
-using Levrum.Utils.Messaging;
+using System.Text;
+using Newtonsoft.Json.Linq;
 using QuantConnect.Data;
+using QuantConnect.Data.Market;
 using QuantConnect.Interfaces;
-
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace QuantConnect.Algorithm.CSharp
 {
@@ -29,51 +32,103 @@ namespace QuantConnect.Algorithm.CSharp
     /// <meta name="tag" content="using quantconnect" />
     /// <meta name="tag" content="trading and orders" />
     public class RabbitMQTest : QCAlgorithm, IRegressionAlgorithmDefinition
-    {
-        private static RabbitMQProducer<string> producer;
-        private static RabbitMQConsumer<string> consumer;
-        private Symbol _tsla = QuantConnect.Symbol.Create("TSLA", SecurityType.Equity, Market.USA);
-        //private Symbol _aapl = QuantConnect.Symbol.Create("AAPL", SecurityType.Equity, Market.USA);
-        private Symbol symbol;
-        private string symbolName = "TSLA";
+    {  
+        public const bool selfProduce = false;
+        private JObject jsonmessage;
+        private TradeBars tradeBars;
+        private List<string> equityList = new List<string>{};
 
         /// <summary>
         /// Initialise the data and resolution required, as well as the cash and start-end dates for your algorithm. All algorithms must initialized.
         /// </summary>
         public override void Initialize()
         {
-            
-            producer = new RabbitMQProducer<string>("localhost", 5672, "test");
-            producer.Connect();
-
-            consumer = new RabbitMQConsumer<string>("localhost", 5672, "test");
-            consumer.Connect();
-
-            consumer.MessageReceived += (sender, Message, Obj) =>
-            {
-                //symbol = QuantConnect.Symbol.Create(Message, SecurityType.Equity, Market.USA);
-                symbolName = Message;
-                Debug(symbolName);
-            };
-
-            //producer.SendObject("SPY");
-
-
-            producer.Disconnect();
-            consumer.Disconnect();
-
-            //symbol = QuantConnect.Symbol.Create(symbolName, SecurityType.Equity, Market.USA);
-
-            Debug("this worked");
             SetStartDate(2012, 10, 07);  //Set Start Date
             SetEndDate(2019, 10, 11);    //Set End Date
-            SetCash(100000);             //Set Strategy Cash
+            SetCash(1000000);             //Set Strategy Cash
+
+            // Create new connection factory
+            var factory = new ConnectionFactory()
+            {
+                HostName = "localhost"
+            };
+
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                // Set up queue for RabbitMQ
+                channel.QueueDeclare(queue: "test",
+                                     durable: false,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                if (selfProduce)
+                    {
+                    // Create test message for RabbitMQProducer
+                    string producerMessage = "TSLA";
+                    var producerBody = Encoding.UTF8.GetBytes(producerMessage);
+
+                    channel.BasicPublish(exchange: "",
+                                         routingKey: "tradeExecution",
+                                         basicProperties: null,
+                                         body: producerBody);
+                }
+
+                // Create object for rabbitMQ producer
+                var consumer = new EventingBasicConsumer(channel);
+
+                // Get single call to clear queue
+                BasicGetResult result = channel.BasicGet("tradeExecution", false);
+                if (result == null)
+                {
+                    // No message available at this time.
+                }
+                else
+                {
+                    IBasicProperties props = result.BasicProperties;
+                    byte[] body = result.Body;
+                    var message = Encoding.UTF8.GetString(body);
+                    jsonmessage = JObject.Parse(message);
+
+
+
+                    foreach (string element in jsonmessage["timeFrames"][1]["equities"].ToObject<List<string>>())
+                    {
+                        AddEquity(element, Resolution.Daily);
+                        equityList.Add(element);
+                        Debug(element);
+                    }
+                }
+
+
+                // Set up consumer message handler
+                consumer.Received += (model, ea) =>
+                {
+                    Debug("THIS COMSUMER RECIEVE IS BEING CALLED");
+                    var body = ea.Body;
+                    var message = Encoding.UTF8.GetString(body);
+                    jsonmessage = JObject.Parse(message);
+
+                    //Debug(jsonmessage.ToString());
+                    Debug(jsonmessage["timeFrames"][0]["equities"].ToString());
+
+                };
+
+                channel.BasicConsume(queue: "tradeExecution",
+                                        autoAck: true,
+                                        consumer: consumer);
+
+                //channel.QueuePurge("tradeExecution");
+            }
+
+            //symbol = QuantConnect.Symbol.Create(ticker, SecurityType.Equity, Market.USA);
+
 
             // Find more symbols here: http://quantconnect.com/data
             // Forex, CFD, Equities Resolutions: Tick, Second, Minute, Hour, Daily.
             // Futures Resolution: Tick, Second, Minute
             // Options Resolution: Minute Only.
-            AddEquity("TSLA", Resolution.Daily);
 
             // There are other assets with similar methods. See "Selecting Options" etc for more details.
             // AddFuture, AddForex, AddCfd, AddOption
@@ -85,11 +140,18 @@ namespace QuantConnect.Algorithm.CSharp
         /// <param name="data">Slice object keyed by symbol containing the stock data</param>
         public override void OnData(Slice data)
         {
+            tradeBars = data.Bars;
             if (!Portfolio.Invested)
             {
-                SetHoldings(_tsla, 1);
+                foreach (string element in equityList)
+                {
+                    SetHoldings(element, 1);
+                }
+
+                //SetHoldings(_tsla, 1);
                 Debug("Purchased Stock");
             }
+
         }
 
         /// <summary>
