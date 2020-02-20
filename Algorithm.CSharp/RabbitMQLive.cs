@@ -7,9 +7,6 @@ using QuantConnect.Interfaces;
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json.Linq;
-using QuantConnect.Data;
-using QuantConnect.Data.Market;
-using QuantConnect.Interfaces;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -79,8 +76,9 @@ namespace QuantConnect.Algorithm.CSharp
 
 
 
-                foreach (string element in jsonmessage["timeFrames"]["equities"].ToObject<List<string>>())
+                foreach (string element in jsonmessage["equities"].ToObject<List<string>>())
                 {
+                    Debug(element);
                     AddEquity(element, Resolution.Daily);
                     equityList.Add(element);
                     Debug(element);
@@ -100,7 +98,7 @@ namespace QuantConnect.Algorithm.CSharp
 
 			foreach (string element in equityList)
 			{
-				if (!Portfolio[element].Invested)
+                if (!Portfolio[element].Invested)
 				{
 					Order(element, 100);
 					Debug("Purchased " + element + " on " + Time.ToShortDateString());
