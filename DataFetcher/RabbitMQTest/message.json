@@ -1,24 +1,11 @@
 {
-    "timeFrames":[
-        {
-            "equities":[
-                "AAPL"
-            ],
-            "startTime":"1998-01-02",
-            "endTime":"2018-07-03",
-            "period":"1d",
-            "resolution":"daily"
-        },
-        {
-            "equities":[
-                "MSFT",
-                "AMZN",
-                "TSLA"
-            ],
-            "startTime":"2002-01-02",
-            "endTime":"2019-12-30",
-            "period":"1d",
-            "resolution":"daily"
-        }
-    ]
+    "equities":[
+        "MSFT",
+        "AMZN",
+        "TSLA"
+    ],
+    "startTime":"2002-01-02",
+    "endTime":"2019-12-30",
+    "period":"1d",
+    "resolution":"daily"
 }

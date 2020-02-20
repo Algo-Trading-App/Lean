@@ -1,121 +1,18 @@
-﻿/*
- * QUANTCONNECT.COM - Democratizing Finance, Empowering Individuals.
- * Lean Algorithmic Trading Engine v2.0. Copyright 2014 QuantConnect Corporation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
-*/
-
-/*
-using System;
+﻿using System;
+using QuantConnect.Data.Market;
+using QuantConnect.Orders;
 using QuantConnect.Securities;
+using QuantConnect.Brokerages;
+using QuantConnect.Interfaces;
 using System.Collections.Generic;
+using System.Text;
+using Newtonsoft.Json.Linq;
 using QuantConnect.Data;
 using QuantConnect.Data.Market;
-using QuantConnect.Orders;
-using QuantConnect.Brokerages;
 using QuantConnect.Interfaces;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
-
-namespace QuantConnect.Algorithm.CSharp
-{
-    /// <summary>
-    /// Basic template algorithm simply initializes the date range and cash. This is a skeleton
-    /// framework you can use for designing an algorithm.
-    /// </summary>
-    /// <meta name="tag" content="live trading" />
-    /// <meta name="tag" content="alerts" />
-    /// <meta name="tag" content="sms alerts" />
-    /// <meta name="tag" content="web hooks" />
-    /// <meta name="tag" content="email alerts" />
-    /// <meta name="tag" content="runtime statistics" />
-    ///
-
-    public class RabbitMQLive : QCAlgorithm
-    {
-        /// <summary>
-        /// Initialise the Algorithm and Prepare Required Data.
-        /// </summary>
-        /// 
-        Symbol _ibm = "IBM";
-        Symbol _eurusd;
-        OrderTicket _limitTicket;
-        OrderTicket _stopMarketTicket;
-        OrderTicket _stopLimitTicket;
-
-        private bool _submittedMarketOnCloseToday;
-        private Security _security;
-
-        
-        /// <summary>
-        /// Initialise the data and resolution required, as well as the cash and start-end dates for your algorithm. All algorithms must initialized.
-        /// </summary>
-        public override void Initialize()
-        {
-            SetStartDate(2013, 10, 07);  //Set Start Date
-            SetEndDate(2013, 10, 11);    //Set End Date
-            SetCash(100000);             //Set Strategy Cash
-
-            // Find more symbols here: http://quantconnect.com/data
-            // Forex, CFD, Equities Resolutions: Tick, Second, Minute, Hour, Daily.
-            // Futures Resolution: Tick, Second, Minute
-            // Options Resolution: Minute Only.
-            if (LiveMode) //Live Mode Property
-            {
-                Debug("THIS IS LIVE");
-            }
-                AddEquity("SPY", Resolution.Minute);
-
-            // There are other assets with similar methods. See "Selecting Options" etc for more details.
-            // AddFuture, AddForex, AddCfd, AddOption
-            //Equity Data for US Markets:
-            AddSecurity(SecurityType.Equity, "IBM", Resolution.Second);
-
-            //FOREX Data for Weekends: 24/6
-            AddSecurity(SecurityType.Forex, "EURUSD", Resolution.Minute);
-
-            //Custom/Bitcoin Live Data: 24/7
-            AddData<Bitcoin>("BTC", Resolution.Second, TimeZones.Utc);
-        }
-
-
-        /// <summary>
-        /// OnData event is the primary entry point for your algorithm. Each new data point will be pumped in here.
-        /// </summary>
-        /// <param name="data">Slice object keyed by symbol containing the stock data</param>
-        public override void OnData(Slice data)
-        {
-            if (!Portfolio.Invested)
-            {
-                SetHoldings(_spy, 1);
-                Debug("Purchased Stock");
-            }
-
-            if (_limitTicket == null)
-            {
-                MarketOrder(_ibm, 100, true, tag: "market order");
-                _limitTicket = LimitOrder(_ibm, 100, Securities["IBM"].Close * 0.9m, tag: "limit order");
-                _stopMarketTicket = StopMarketOrder(_ibm, -100, Securities["IBM"].Close * 0.95m, tag: "stop market");
-                _stopLimitTicket = StopLimitOrder(_ibm, 100, Securities["IBM"].Close * 0.90m, Securities["IBM"].Close * 0.80m, tag: "stop limit");
-            }
-        }
-        
-}
-*/
-
-using System;
-using QuantConnect.Data.Market;
-using QuantConnect.Orders;
-using QuantConnect.Securities;
-using QuantConnect.Brokerages;
-using QuantConnect.Interfaces;
 
 namespace QuantConnect.Algorithm.CSharp
 {
@@ -130,6 +27,13 @@ namespace QuantConnect.Algorithm.CSharp
         private bool _submittedMarketOnCloseToday;
         private Security _security;
         private DateTime last = DateTime.MinValue;
+        private JObject jsonmessage;
+        private List<string> equityList = new List<string> { };
+        private ConnectionFactory factory = new ConnectionFactory();
+        private IConnection connection;
+        private IModel channel;
+        private EventingBasicConsumer consumer;
+
 
         public override void Initialize()
         {
@@ -143,12 +47,67 @@ namespace QuantConnect.Algorithm.CSharp
 
             //Set the brokerage message handler:
             SetBrokerageMessageHandler(new BrokerageMessageHandler(this));
+
+            // Create new connection factory
+            //var factory = new ConnectionFactory()
+            //{
+            //    HostName = "localhost"
+            //};
+
+            connection = factory.CreateConnection();
+            channel = connection.CreateModel();
+            factory.HostName = "localhost";
+
+
+            // Set up queue for RabbitMQ
+            channel.QueueDeclare(queue: "test",
+                                    durable: false,
+                                    exclusive: false,
+                                    autoDelete: false,
+                                    arguments: null);
+
+            // Create object for rabbitMQ producer
+            consumer = new EventingBasicConsumer(channel);
+
+            // Set up consumer message handler
+            consumer.Received += (model, ea) =>
+            {
+				Debug("THIS COMSUMER RECIEVE IS BEING CALLED");
+				var body = ea.Body;
+                var message = Encoding.UTF8.GetString(body);
+                jsonmessage = JObject.Parse(message);
+
+
+
+                foreach (string element in jsonmessage["timeFrames"]["equities"].ToObject<List<string>>())
+                {
+                    AddEquity(element, Resolution.Daily);
+                    equityList.Add(element);
+                    Debug(element);
+                }
+            };
+
+            channel.BasicConsume(queue: "tradeExecution",
+                                    autoAck: true,
+                                    consumer: consumer);
         }
 
         public void OnData(TradeBars data)
         {
+            channel.BasicConsume(queue: "tradeExecution",
+                                        autoAck: true,
+                                        consumer: consumer);
 
-            if (Time.Date != last.Date) // each morning submit a market on open order
+			foreach (string element in equityList)
+			{
+				if (!Portfolio[element].Invested)
+				{
+					Order(element, 100);
+					Debug("Purchased " + element + " on " + Time.ToShortDateString());
+				}
+			}
+
+			if (Time.Date != last.Date) // each morning submit a market on open order
             {
                 _submittedMarketOnCloseToday = false;
                 MarketOnOpenOrder("SPY", 100);

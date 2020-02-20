@@ -373,6 +373,7 @@
     <Compile Include="Benchmarks\IndicatorRibbonBenchmark.cs" />
     <Compile Include="ZeroFeeRegressionAlgorithm.cs" />
     <Compile Include="RabbitMQTest.cs" />
+    <Compile Include="RabbitMQLive.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Algorithm.Framework\QuantConnect.Algorithm.Framework.csproj">

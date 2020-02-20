@@ -72,7 +72,7 @@ def writeData(equityCall, ticker):
 			"Adj. Volume"],
 			axis=1)
 
-	# print(df)
+	print(df)
 
 	# Write csvzip to path
 	df.to_csv(fullname, header=False)

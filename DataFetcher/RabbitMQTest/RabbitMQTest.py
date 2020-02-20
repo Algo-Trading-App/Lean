@@ -6,7 +6,7 @@ def main():
 	with open("message.json", "r") as message:
 		message = json.loads(message.read())
 		send(message)
-		send(message)
+		# send(message)
 
 def send(message):
     connection = pika.BlockingConnection(

@@ -105,14 +105,10 @@ namespace QuantConnect.Algorithm.CSharp
                 // Set up consumer message handler
                 consumer.Received += (model, ea) =>
                 {
-                    Debug("THIS COMSUMER RECIEVE IS BEING CALLED");
+                    //Debug("THIS COMSUMER RECIEVE IS BEING CALLED");
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
                     jsonmessage = JObject.Parse(message);
-
-                    //Debug(jsonmessage.ToString());
-                    Debug(jsonmessage["timeFrames"][0]["equities"].ToString());
-
                 };
 
                 channel.BasicConsume(queue: "tradeExecution",
