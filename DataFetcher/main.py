@@ -112,7 +112,7 @@ def writeData(equityCall, ticker):
 			df.to_csv(addname, header = False)
 			fullname = pd.concat([addname, fullname])	
 
-		elif equityCall["startTime"] < old and equityCall["endTime] < old:
+		elif equityCall["startTime"] < old and equityCall["endTime"] < old:
 			df = getData(equityCall, ticker)
 			print(df)
                         df.to_csv(addname, header = False)
