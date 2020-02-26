@@ -29,7 +29,7 @@ Join the team and solve some of the most difficult challenges in quantitative fi
 
 ![alt tag](Documentation/2-Overview-Detailed-New.png)
 
-The Engine is broken into many modular pieces which can be extended without touching other files. The modules are configured in config.json as set "environments". Through these environments you can control LEAN to operate in the mode required. 
+The Engine is broken into many modular pieces which can be extended without touching other files. The modules are configured in config.json as set "environments". Through these environments you can control LEAN to operate in the mode required.
 
 The most important plugins are:
 
@@ -43,8 +43,8 @@ The most important plugins are:
    > Process new order requests; either using the fill models provided by the algorithm, or with an actual brokerage. Send the processed orders back to the algorithm's portfolio to be filled.
 
  - **Realtime Event Management** (IRealtimeHandler)
-   > Generate real time events - such as end of day events. Trigger callbacks to real time event handlers. For backtesting this is mocked-up an works on simulated time. 
- 
+   > Generate real time events - such as end of day events. Trigger callbacks to real time event handlers. For backtesting this is mocked-up an works on simulated time.
+
  - **Algorithm State Setup** (ISetupHandler)
    > Configure the algorithm cash, portfolio and data requested. Initialize all state parameters required.
 
@@ -60,7 +60,7 @@ git clone https://github.com/QuantConnect/Lean.git
 cd Lean
 ```
 
-### macOS 
+### macOS
 
 - Install [Visual Studio for Mac](https://www.visualstudio.com/vs/visual-studio-mac/)
 - Open `QuantConnect.Lean.sln` in Visual Studio
@@ -86,9 +86,9 @@ echo "deb http://download.mono-project.com/repo/ubuntu stable-xenial/snapshots/5
 apt-get install -y fsharp && rm -rf /var/lib/apt/lists/* /tmp/*
 ```
 If you get this error on the last command:
- 
+
 **Unable to locate package referenceassemblies-pcl**,
- 
+
 run the following command (it works on current version of Ubuntu - 17.10):
 ```
 echo "deb http://download.mono-project.com/repo/ubuntu xenial main" | sudo tee /etc/apt/sources.list.d/mono-official.list
@@ -131,7 +131,7 @@ If after all you still receive connection refuse error, try changing the `ib-por
 - Build the solution by clicking Build Menu -> Build Solution (this should trigger the Nuget package restore)
 - Press `F5` to run
 
-Nuget packages not being restored is the most common build issue. By default Visual Studio includes NuGet, if your installation of Visual Studio (or your IDE) cannot find DLL references, install [Nuget](https://www.nuget.org/), run nuget on the solution and re-build the Solution again. 
+Nuget packages not being restored is the most common build issue. By default Visual Studio includes NuGet, if your installation of Visual Studio (or your IDE) cannot find DLL references, install [Nuget](https://www.nuget.org/), run nuget on the solution and re-build the Solution again.
 
 ### Python Support
 
@@ -145,7 +145,7 @@ For Linux users:
 sudo apt-get update && apt-get install -y r-base && apt-get install -y pandoc && apt-get install -y libcurl4-openssl-dev
 ```
 For Windows and macOs users:
-Please visit the official [R website](https://www.r-project.org/) to download R. 
+Please visit the official [R website](https://www.r-project.org/) to download R.
 
 ### QuantConnect Visual Studio Plugin
 
@@ -155,7 +155,7 @@ For more information please see the QuantConnect Visual Studio Plugin [Documenta
 
 Please submit bugs and feature requests as an issue to the [Lean Repository][5]. Before submitting an issue please read others to ensure it is not a duplicate.
 
-## Mailing List ## 
+## Mailing List ##
 
 The mailing list for the project can be found on [LEAN Forum][6]. Please use this to request assistance with your installations and setup questions.
 
@@ -167,7 +167,7 @@ All accepted pull requests will get a 2mo free Prime subscription on QuantConnec
 
 ## Acknowledgements ##
 
-The open sourcing of QuantConnect would not have been possible without the support of the Pioneers. The Pioneers formed the core 100 early adopters of QuantConnect who subscribed and allowed us to launch the project into open source. 
+The open sourcing of QuantConnect would not have been possible without the support of the Pioneers. The Pioneers formed the core 100 early adopters of QuantConnect who subscribed and allowed us to launch the project into open source.
 
 Ryan H, Pravin B, Jimmie B, Nick C, Sam C, Mattias S, Michael H, Mark M, Madhan, Paul R, Nik M, Scott Y, BinaryExecutor.com, Tadas T, Matt B, Binumon P, Zyron, Mike O, TC, Luigi, Lester Z, Andreas H, Eugene K, Hugo P, Robert N, Christofer O, Ramesh L, Nicholas S, Jonathan E, Marc R, Raghav N, Marcus, Hakan D, Sergey M, Peter McE, Jim M, INTJCapital.com, Richard E, Dominik, John L, H. Orlandella, Stephen L, Risto K, E.Subasi, Peter W, Hui Z, Ross F, Archibald112, MooMooForex.com, Jae S, Eric S, Marco D, Jerome B, James B. Crocker, David Lypka, Edward T, Charlie Guse, Thomas D, Jordan I, Mark S, Bengt K, Marc D, Al C, Jan W, Ero C, Eranmn, Mitchell S, Helmuth V, Michael M, Jeremy P, PVS78, Ross D, Sergey K, John Grover, Fahiz Y, George L.Z., Craig E, Sean S, Brad G, Dennis H, Camila C, Egor U, David T, Cameron W, Napoleon Hernandez, Keeshen A, Daniel E, Daniel H, M.Patterson, Asen K, Virgil J, Balazs Trader, Stan L, Con L, Will D, Scott K, Barry K, Pawel D, S Ray, Richard C, Peter L, Thomas L., Wang H, Oliver Lee, Christian L.
 
