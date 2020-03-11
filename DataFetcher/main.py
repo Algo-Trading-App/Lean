@@ -27,8 +27,28 @@ def callback(ch, method, properties, body):
 
 		# Gets each equity for each timeframe
 		for timeFrame in equityCall["timeFrames"]:
-			for ticker in timeFrame["equities"]:
-				writeData(timeFrame, ticker)
+
+			#haewon code: if the security is equity or forex or option or future or crpyto
+			if "equities" in timeFrame:
+				for ticker in timeFrame["equities"]:
+					writeData(timeFrame, ticker)
+			elif "forex" in timeFrame:
+				for ticker in timeFrame["forex"]:
+					writeData(timeFrame, ticker)
+
+			elif "options" in timeFrame:
+				for ticker in timeFrame["options"]:
+					writeData(timeFrame, ticker)
+			
+			elif "futures" in timeFrame:
+				for ticker in timeFrame["futures"]:
+					writeData(timeFrame, ticker)
+
+
+			elif "crpyto" in timeFrame:
+				for ticker in timeFrame["crpyto"]:
+					writeData(timeFrame, ticker)
+
 
 	except:
 		print("RECIEVE: Incorrect RabbitMQ message format")
@@ -66,10 +86,47 @@ def getData(equityCall, ticker):
 
 def writeData(equityCall, ticker):
 	# If path for equity does not exist create one
-	outname = ticker.lower() + ".csv"
-	zipname = ticker.lower() + ".zip"
 
-	outdir = "../Data/equity/usa/"+equityCall["resolution"]+"/"
+	if "equities" in equityCall:
+		outname = ticker.lower() + ".csv"
+		zipname = ticker.lower() + ".zip"
+
+		outdir = "../Data/equity/usa/"+equityCall["resolution"]+"/"
+
+	elif "forex" in equityCall:
+		outname = ticker.lower() + ".csv"
+		zipname = ticker.lower() + ".zip"
+
+		outdir = "../Data/forex/" + equityCall["marketName"]+ "/" + equityCall["resolution"] + "/"
+	
+	elif "options" in equityCall:
+		dte = equityCall["startTime"].strftime("%Y%m%d")
+		expdate = equityCall["symbolExpirationDate"].strftime("%Y%m%d")
+	
+		outname = dte + "_" + ticker.lower() + "_" + equityCall["resoultion"] + "_" + equityCall["tickType"] + "_" + equityCall["optionType"] + "_" 
+		+ equityCall["optionStyle"] + "_" + equityCall["decicentStrikePrice"] + "_" + expdate + ".csv"
+
+		zipname = dte + "_" + equityCall["tickType"] + "_" + equityCall["optionType"] + ".zip"
+		
+		outdir = "../Data/option/usa/" + equityCall["resoultion"] + "/" + ticker.lower() + "/"
+
+
+	elif "futures" in equityCall:
+		expdate = equityCall["symbolExpirationDate"].strftime("%Y%m%d")
+		outname = ticker.lower() + "_" + equityCall["tickType"] + "_" + expdate + ".csv"
+		zipname = ticker.lower() + "_" + equityCall["tickType"] + ".zip"
+		
+		outdir = "../Data/future/usa/" + equityCall["resolution"] + "/"
+ 
+	
+	elif "crpyto" in equityCall:
+		outname = ticker.lower() + ".csv"
+		zipname = ticker.lower() + "_" + equityCall["tickType"] + ".zip"
+		
+		outdir = "../Data/crpyto/" + equityCall["marketName"] + "/" + equityCall["resolution"] + "/" 
+
+
+
 	if not os.path.exists(outdir):
 	    os.makedirs(outdir)
 
