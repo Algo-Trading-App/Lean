@@ -93,7 +93,7 @@ namespace QuantConnect.Algorithm.CSharp
 
 
 
-                    foreach (string element in jsonmessage["timeFrames"][1]["equities"].ToObject<List<string>>())
+                    foreach (string element in jsonmessage["equities"].ToObject<List<string>>())
                     {
                         AddEquity(element, Resolution.Daily);
                         equityList.Add(element);
@@ -141,7 +141,7 @@ namespace QuantConnect.Algorithm.CSharp
             {
                 foreach (string element in equityList)
                 {
-                    SetHoldings(element, 1);
+                    SetHoldings(element, 0.25);
                 }
 
                 //SetHoldings(_tsla, 1);
