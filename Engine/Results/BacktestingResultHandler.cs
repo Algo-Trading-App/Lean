@@ -29,6 +29,9 @@ using QuantConnect.Statistics;
 using QuantConnect.Util;
 using System.IO;
 using QuantConnect.Lean.Engine.Alphas;
+using RabbitMQ.Client;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace QuantConnect.Lean.Engine.Results
 {
@@ -406,6 +409,36 @@ namespace QuantConnect.Lean.Engine.Results
                     DateFinished = DateTime.Now,
                     Progress = 1
                 };
+
+
+                // Create new connection factory
+                var factory = new ConnectionFactory()
+                {
+                    HostName = "localhost"
+                };
+
+                using (var connection = factory.CreateConnection())
+                using (var channel = connection.CreateModel())
+                {
+                    // Set up queue for RabbitMQ
+                    channel.QueueDeclare(queue: "backtest",
+                                         durable: false,
+                                         exclusive: false,
+                                         autoDelete: false,
+                                         arguments: null);
+
+
+                    // Create test message for RabbitMQProducer
+                    string producerMessage = JsonConvert.SerializeObject(result, Formatting.Indented);
+                    var producerBody = Encoding.UTF8.GetBytes(producerMessage);
+
+                    channel.BasicPublish(exchange: "",
+                                            routingKey: "backtest",
+                                            basicProperties: null,
+                                            body: producerBody);
+                }
+                File.WriteAllText("../RABBITMQOUTPUT.json", JsonConvert.SerializeObject(result, Formatting.Indented));
+
 
                 //Place result into storage.
                 StoreResult(result);

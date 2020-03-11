@@ -16,7 +16,9 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Threading;
+using Newtonsoft.Json;
 using QuantConnect.Configuration;
 using QuantConnect.Lean.Engine;
 using QuantConnect.Logging;
@@ -134,6 +136,11 @@ namespace QuantConnect.Lean.Launcher
                 //Delete the message from the job queue:
                 leanEngineSystemHandlers.JobQueue.AcknowledgeJob(job);
                 Log.Trace("Engine.Main(): Packet removed from queue: " + job.AlgorithmId);
+
+                //Export backtest results to json
+                Log.Trace("THIS IS BEING CSALLED\n\n\n\n");
+                var results = leanEngineAlgorithmHandlers.Results;
+                File.WriteAllText("/Users/matthewjordan/Code/Algo-Trader-Lean/PortfolioGenerator/RabbitMQTest/test.json", JsonConvert.SerializeObject(results, Formatting.Indented));
 
                 // clean up resources
                 leanEngineSystemHandlers.Dispose();
