@@ -25,6 +25,8 @@ def callback(ch, method, properties, body):
 		equityCall = body.decode("utf8").replace("\'", "\"")
 		equityCall = json.loads(equityCall)
 
+		print(equityCall)
+
 
 	except:
 		print("RECIEVE: Incorrect RabbitMQ message format")

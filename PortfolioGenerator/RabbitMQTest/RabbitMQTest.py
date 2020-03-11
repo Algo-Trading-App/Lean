@@ -13,9 +13,9 @@ def send(message):
     pika.ConnectionParameters(host="localhost"))
     channel = connection.channel()
 
-    channel.queue_declare(queue="tradeExecution")
+    channel.queue_declare(queue="backtest")
 
-    channel.basic_publish(exchange="", routing_key="tradeExecution", body=str(message))
+    channel.basic_publish(exchange="", routing_key="backtest", body=str(message))
     print(" [x] Sent message")
 
     connection.close()
