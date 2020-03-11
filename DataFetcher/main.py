@@ -6,6 +6,8 @@ import quandl
 import os
 import pandas
 from zipfile import ZipFile
+import operator
+
 
 # Quandl API Key
 API_KEY = "PgJuoJUUrmZVu75mRUD2"
@@ -22,11 +24,11 @@ def main():
 
 def callback(ch, method, properties, body):
 	try:
-		equityCall = body.decode("utf8").replace("\'", "\"")
-		equityCall = json.loads(equityCall)
+		securityCall = body.decode("utf8").replace("\'", "\"")
+		sercurityCall = json.loads(securityCall)
 
 		# Gets each equity for each timeframe
-		for timeFrame in equityCall["timeFrames"]:
+		for timeFrame in securityCall["timeFrames"]:
 
 			#haewon code: if the security is equity or forex or option or future or crpyto
 			if "equities" in timeFrame:
@@ -84,46 +86,46 @@ def getData(equityCall, ticker):
 
 	return df
 
-def writeData(equityCall, ticker):
+def writeData(securityCall, ticker):
 	# If path for equity does not exist create one
 
-	if "equities" in equityCall:
+	if "equities" in securityCall:
 		outname = ticker.lower() + ".csv"
 		zipname = ticker.lower() + ".zip"
 
-		outdir = "../Data/equity/usa/"+equityCall["resolution"]+"/"
+		outdir = "../Data/equity/usa/"+securityCall["resolution"]+"/"
 
-	elif "forex" in equityCall:
+	elif "forex" in securityCall:
 		outname = ticker.lower() + ".csv"
 		zipname = ticker.lower() + ".zip"
 
-		outdir = "../Data/forex/" + equityCall["marketName"]+ "/" + equityCall["resolution"] + "/"
+		outdir = "../Data/forex/" + securityCall["marketName"]+ "/" + securityCall["resolution"] + "/"
 	
-	elif "options" in equityCall:
-		dte = equityCall["startTime"].strftime("%Y%m%d")
-		expdate = equityCall["symbolExpirationDate"].strftime("%Y%m%d")
+	elif "options" in securityCall:
+		dte = securityCall["startTime"].strftime("%Y%m%d")
+		expdate = securityCall["symbolExpirationDate"].strftime("%Y%m%d")
 	
-		outname = dte + "_" + ticker.lower() + "_" + equityCall["resoultion"] + "_" + equityCall["tickType"] + "_" + equityCall["optionType"] + "_" 
-		+ equityCall["optionStyle"] + "_" + equityCall["decicentStrikePrice"] + "_" + expdate + ".csv"
+		outname = dte + "_" + ticker.lower() + "_" + securityCall["resoultion"] + "_" + securityCall["tickType"] + "_" + securityCall["optionType"] + "_" 
+		+ securityCall["optionStyle"] + "_" + securityCall["decicentStrikePrice"] + "_" + expdate + ".csv"
 
-		zipname = dte + "_" + equityCall["tickType"] + "_" + equityCall["optionType"] + ".zip"
+		zipname = dte + "_" + securityCall["tickType"] + "_" + securityCall["optionType"] + ".zip"
 		
-		outdir = "../Data/option/usa/" + equityCall["resoultion"] + "/" + ticker.lower() + "/"
+		outdir = "../Data/option/usa/" + securityCall["resoultion"] + "/" + ticker.lower() + "/"
 
 
 	elif "futures" in equityCall:
-		expdate = equityCall["symbolExpirationDate"].strftime("%Y%m%d")
-		outname = ticker.lower() + "_" + equityCall["tickType"] + "_" + expdate + ".csv"
-		zipname = ticker.lower() + "_" + equityCall["tickType"] + ".zip"
+		expdate = securityCall["symbolExpirationDate"].strftime("%Y%m%d")
+		outname = ticker.lower() + "_" + securityCall["tickType"] + "_" + expdate + ".csv"
+		zipname = ticker.lower() + "_" + securityCall["tickType"] + ".zip"
 		
-		outdir = "../Data/future/usa/" + equityCall["resolution"] + "/"
+		outdir = "../Data/future/usa/" + securityCall["resolution"] + "/"
  
 	
 	elif "crpyto" in equityCall:
 		outname = ticker.lower() + ".csv"
-		zipname = ticker.lower() + "_" + equityCall["tickType"] + ".zip"
+		zipname = ticker.lower() + "_" + securityCall["tickType"] + ".zip"
 		
-		outdir = "../Data/crpyto/" + equityCall["marketName"] + "/" + equityCall["resolution"] + "/" 
+		outdir = "../Data/crpyto/" + securityCall["marketName"] + "/" + securityCall["resolution"] + "/" 
 
 
 
@@ -135,67 +137,31 @@ def writeData(equityCall, ticker):
 	zipname = os.path.join(outdir, zipname)
 
 
-
+	
 	# Haewon Code start
 	# Read csv and check if the data is arlady in it
 	if os.path.exists(zipname):
 		addname = os.path.join(outdir."add.csv")
-		
+	
 		with ZipFile(zipname, 'r') as zip:
 			zip.extract(fullname)
+
+
+		df = getData(securityCall, ticker)
+		print(df)
+		df.to_csv(addname, header = False)
+		fullname = pd.concat([fullname, addname])
+		
+		df = pd.read_csv(fullname)
+		df = sorted(df, key=operator.itemgetter(0))
+
+		df.drop_duplicates(subset=None, inplace = True)
+		df.to_csv(fullname, header=False)
+		os.remove(addname) 
 	
 
-		#change 19980201 to 1998-02-01 to compare dates 
-		excsv = pd.read_csv(fullname)
-		old = excsv.head(1)
-		old = old.split()
-		old = old[0]
-		old = datetime.strptime(old, '%Y%m%d').date()
-		new = excsv.tail(1)
-		new = new.split()
-		new = new[0]
-		new = datetime.strptime(new, '%Y%m%d').date()
-
-		#when new data is between existing data
-		if equityCall["startTime"] >= old and equityCall["endTime"] <= new:
-			print("the data already exists")
-			return
-		
-		
-		elif equityCall["startTime"] < old and equityCall["endTime"] <= new and equityCall["endTime"] >= old:
-			equityCall["endTime"] = old - timedelta(1)
-			df = getData(equityCall, ticker)
-			print(df)
-			df.to_csv(addname, header = False)
-			fullname = pd.concat([addname, fullname])	
-
-		elif equityCall["startTime"] < old and equityCall["endTime"] < old:
-			df = getData(equityCall, ticker)
-			print(df)
-                        df.to_csv(addname, header = False)
-                        fullname = pd.concat([addname, fullname])
-		
-		elif equityCall["endTime"] > new and equityCall["startTime"] >= old and equityCall["startTime"] <= new:
-			equityCall["startTime"] = new + timedelta(1)
-			df = getData(equityCall, ticker)
-			print(df)
-                        df.to_csv(addname, header = False)
-                        fullname = pd.concat([fullname, addname])
-
-		elif equityCall["startTime"] > new and equityCall["endTime"] > new:
-			df = getData(equityCall, ticker)
-			print(df)
-                        df.to_csv(addname, header = False)
-                        fullname = pd.concat([fullname, addname])
-
-		elif equityCall["startTime"] < old and equityCall["endTime"] > new:
-			df = getData(equityCall, ticker)
-			print(df)
-			df.to_csv(fullname, header=False)
-			
-
 	else:
-		df = getData(equityCall, ticker)			
+		df = getData(securityCall, ticker)			
 		print(df)
 		df.to_csv(fullname, header=False)
 		
