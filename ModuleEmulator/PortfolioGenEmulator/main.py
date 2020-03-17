@@ -15,7 +15,8 @@ def main():
 	# Opens example message for RabbitMQMessage
 	with open("PortfolioGeneratorQuery.json", "r") as message:
 		message = json.loads(message.read())
-		send(message, "backtest")
+		send(message, "backtest", "backtest")
+		send(message, "dataFetcher", "dataFetcher")
 
 	recieve()
 
@@ -44,14 +45,14 @@ def recieve():
 	channel.start_consuming()
 
 
-def send(message, queue):
+def send(message, queue, routingKey):
     connection = pika.BlockingConnection(
     pika.ConnectionParameters(host="localhost"))
     channel = connection.channel()
 
     channel.queue_declare(queue=queue)
 
-    channel.basic_publish(exchange="", routing_key="backtest", body=str(message))
+    channel.basic_publish(exchange="", routing_key=routingKey, body=str(message))
     print(" [x] Sent message")
 
     connection.close()
