@@ -13,7 +13,7 @@ API_KEY = "PgJuoJUUrmZVu75mRUD2"
 
 def main():
 	# Opens example message for RabbitMQMessage
-	with open("message.json", "r") as message:
+	with open("PortfolioGeneratorQuery.json", "r") as message:
 		message = json.loads(message.read())
 		send(message)
 
@@ -33,16 +33,15 @@ def callback(ch, method, properties, body):
 
 
 def recieve():
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host="localhost"))
-    channel = connection.channel()
+	connection = pika.BlockingConnection(
+	pika.ConnectionParameters(host="localhost"))
+	channel = connection.channel()
 
-    channel.queue_declare(queue="backtest")
+	channel.queue_declare(queue="backtestResults")
+	channel.basic_consume(queue="backtestResults", on_message_callback=callback, auto_ack=True)
 
-    channel.basic_consume(queue="backtest", on_message_callback=callback, auto_ack=True)
-
-    print("RECIEVER: [*] Waiting for messages. To exit press CTRL+C")
-    channel.start_consuming()
+	print("RECIEVER: [*] Waiting for messages. To exit press CTRL+C")
+	channel.start_consuming()
 
 
 def send(message):

@@ -32,11 +32,11 @@ namespace QuantConnect.Algorithm.CSharp
     /// <meta name="tag" content="using quantconnect" />
     /// <meta name="tag" content="trading and orders" />
     public class RabbitMQTest : QCAlgorithm, IRegressionAlgorithmDefinition
-    {  
+    {
         public const bool selfProduce = false;
         private JObject jsonmessage;
         private TradeBars tradeBars;
-        private List<string> equityList = new List<string>{};
+        private List<string> equityList = new List<string> { };
 
         /// <summary>
         /// Initialise the data and resolution required, as well as the cash and start-end dates for your algorithm. All algorithms must initialized.
@@ -57,20 +57,20 @@ namespace QuantConnect.Algorithm.CSharp
             using (var channel = connection.CreateModel())
             {
                 // Set up queue for RabbitMQ
-                channel.QueueDeclare(queue: "test",
+                channel.QueueDeclare(queue: "backtest",
                                      durable: false,
                                      exclusive: false,
                                      autoDelete: false,
                                      arguments: null);
 
                 if (selfProduce)
-                    {
+                {
                     // Create test message for RabbitMQProducer
                     string producerMessage = "TSLA";
                     var producerBody = Encoding.UTF8.GetBytes(producerMessage);
 
                     channel.BasicPublish(exchange: "",
-                                         routingKey: "tradeExecution",
+                                         routingKey: "backtest",
                                          basicProperties: null,
                                          body: producerBody);
                 }
@@ -79,7 +79,7 @@ namespace QuantConnect.Algorithm.CSharp
                 var consumer = new EventingBasicConsumer(channel);
 
                 // Get single call to clear queue
-                BasicGetResult result = channel.BasicGet("tradeExecution", false);
+                BasicGetResult result = channel.BasicGet("backtest", false);
                 if (result == null)
                 {
                     // No message available at this time.
@@ -111,11 +111,11 @@ namespace QuantConnect.Algorithm.CSharp
                     jsonmessage = JObject.Parse(message);
                 };
 
-                channel.BasicConsume(queue: "tradeExecution",
+                channel.BasicConsume(queue: "backtest",
                                         autoAck: true,
                                         consumer: consumer);
 
-                //channel.QueuePurge("tradeExecution");
+                channel.QueuePurge("backtest");
             }
 
             //symbol = QuantConnect.Symbol.Create(ticker, SecurityType.Equity, Market.USA);
@@ -141,7 +141,7 @@ namespace QuantConnect.Algorithm.CSharp
             {
                 foreach (string element in equityList)
                 {
-                    SetHoldings(element, 0.25);
+                    SetHoldings(element, 0.1);
                 }
 
                 //SetHoldings(_tsla, 1);
