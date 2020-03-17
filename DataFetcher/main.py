@@ -21,10 +21,10 @@ MARKET_DICT = {
 
 
 def main():
-	# Opens example message for RabbitMQMessage
-	with open("EquityTestr.json", "r") as message:
-		message = json.loads(message.read())
-		send(message, "dataFetcher", "dataFetcher")
+	# # Opens example message for RabbitMQMessage
+	# with open("EquityTestr.json", "r") as message:
+	# 	message = json.loads(message.read())
+	# 	send(message, "dataFetcher", "dataFetcher")
 
 	recieve()
 
