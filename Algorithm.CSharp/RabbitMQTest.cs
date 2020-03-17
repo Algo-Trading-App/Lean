@@ -93,7 +93,7 @@ namespace QuantConnect.Algorithm.CSharp
 
 
 
-                    foreach (string element in jsonmessage["equities"].ToObject<List<string>>())
+                    foreach (string element in jsonmessage["timeFrames"][0]["securities"].ToObject<List<string>>())
                     {
                         AddEquity(element, Resolution.Daily);
                         equityList.Add(element);
@@ -115,7 +115,7 @@ namespace QuantConnect.Algorithm.CSharp
                                         autoAck: true,
                                         consumer: consumer);
 
-                channel.QueuePurge("backtest");
+                //channel.QueuePurge("backtest");
             }
 
             //symbol = QuantConnect.Symbol.Create(ticker, SecurityType.Equity, Market.USA);

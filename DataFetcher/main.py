@@ -24,7 +24,7 @@ def main():
 	# Opens example message for RabbitMQMessage
 	with open("EquityTestr.json", "r") as message:
 		message = json.loads(message.read())
-		send(message)
+		send(message, "dataFetcher", "dataFetcher")
 
 	recieve()
 
@@ -43,8 +43,10 @@ def callback(ch, method, properties, body):
 				print(getData(timeFrame, equity, timeFrame["securityType"]))
 				writeData(timeFrame, equity, timeFrame["securityType"])
 
+			# send("")
+
 	# except:
-	# 	print("RECIEVE: Incorrect RabbitMQ message format")
+		# print("RECIEVE: Incorrect RabbitMQ message format")
 
 
 def getData(equityCall, ticker, securityType):
@@ -137,125 +139,6 @@ def writeData(equityCall, ticker, securityType):
 	os.remove(fullname)
 
 
-# def writeData(equityCall, ticker):
-# 	# If path for equity does not exist create one
-#
-# 	if "equities" in equityCall:
-# 		outname = ticker.lower() + ".csv"
-# 		zipname = ticker.lower() + ".zip"
-#
-# 		outdir = "../Data/equity/usa/" + equityCall["resolution"] + "/"
-#
-# 	elif "forex" in equityCall:
-# 		outname = ticker.lower() + ".csv"
-# 		zipname = ticker.lower() + ".zip"
-#
-# 		outdir = "../Data/forex/" + \
-# 		    equityCall["marketName"] + "/" + equityCall["resolution"] + "/"
-#
-# 	elif "options" in equityCall:
-# 		dte = equityCall["startTime"].strftime("%Y%m%d")
-# 		expdate = equityCall["symbolExpirationDate"].strftime("%Y%m%d")
-#
-# 		outname = dte + "_" + ticker.lower() + "_" + \
-# 		                                   equityCall["resoultion"] + "_" + equityCall["tickType"] + \
-# 		                                       "_" + equityCall["optionType"] + "_"
-# 		+ equityCall["optionStyle"] + "_" + \
-# 		    equityCall["decicentStrikePrice"] + "_" + expdate + ".csv"
-#
-# 		zipname = dte + "_" + equityCall["tickType"] + \
-# 		    "_" + equityCall["optionType"] + ".zip"
-#
-# 		outdir = "../Data/option/usa/" + \
-# 		    equityCall["resoultion"] + "/" + ticker.lower() + "/"
-#
-# 	elif "futures" in equityCall:
-# 		expdate = equityCall["symbolExpirationDate"].strftime("%Y%m%d")
-# 		outname = ticker.lower() + "_" + \
-# 		                       equityCall["tickType"] + "_" + expdate + ".csv"
-# 		zipname = ticker.lower() + "_" + equityCall["tickType"] + ".zip"
-#
-# 		outdir = "../Data/future/usa/" + equityCall["resolution"] + "/"
-#
-# 	elif "crpyto" in equityCall:
-# 		outname = ticker.lower() + ".csv"
-# 		zipname = ticker.lower() + "_" + equityCall["tickType"] + ".zip"
-#
-# 		outdir = "../Data/crpyto/" + \
-# 		    equityCall["marketName"] + "/" + equityCall["resolution"] + "/"
-#
-# 	if not os.path.exists(outdir):
-# 	    os.makedirs(outdir)
-#
-# 	# Full path to equity csvzip
-# 	fullname = os.path.join(outdir, outname)
-# 	zipname = os.path.join(outdir, zipname)
-#
-# 	# Haewon Code start
-# 	# Read csv and check if the data is arlady in it
-# 	if os.path.exists(zipname):
-# 		addname = os.path.join(outdir, "add.csv")
-#
-# 		with ZipFile(zipname, 'r') as zip:
-# 			zip.extract(fullname)
-#
-# 		# change 19980201 to 1998-02-01 to compare dates
-# 		excsv = pd.read_csv(fullname)
-# 		old = excsv.head(1)
-# 		old = old.split()
-# 		old = old[0]
-# 		old = datetime.strptime(old, '%Y%m%d').date()
-# 		new = excsv.tail(1)
-# 		new = new.split()
-# 		new = new[0]
-# 		new = datetime.strptime(new, '%Y%m%d').date()
-#
-# 		# when new data is between existing data
-# 		if (equityCall["startTime"] >= old and equityCall["endTime"] <= new):
-# 			print("the data already exists")
-# 			return
-#
-# 		elif (equityCall["startTime"] < old and equityCall["endTime"] <= new and equityCall["endTime"] >= old):
-# 			equityCall["endTime"] = old - timedelta(1)
-# 			df = getData(equityCall, ticker)
-# 			print(df)
-# 			df.to_csv(addname, header=False)
-# 			fullname = pd.concat([addname, fullname])
-#
-# 		elif (equityCall["startTime"] < old and equityCall["endTime"] < old):
-# 			df = getData(equityCall, ticker)
-# 			print(df)
-# 			df.to_csv(addname, header=False)
-# 			fullname = pd.concat([addname, fullname])
-#
-# 		elif (equityCall["endTime"] > new and equityCall["startTime"] >= old and equityCall["startTime"] <= new):
-# 			equityCall["startTime"] = new + timedelta(1)
-# 			df = getData(equityCall, ticker)
-# 			print(df)
-# 			df.to_csv(addname, header = False)
-# 			fullname = pd.concat([fullname, addname])
-#
-# 		elif (equityCall["startTime"] > new and equityCall["endTime"] > new):
-# 			df = getData(equityCall, ticker)
-# 			print(df)
-# 			df.to_csv(addname, header = False)
-# 			fullname = pd.concat([fullname, addname])
-#
-# 		elif (equityCall["startTime"] < old and equityCall["endTime"] > new):
-# 			df = getData(equityCall, ticker)
-# 			print(df)
-# 			df.to_csv(fullname, header=False)
-#
-# 		else:
-# 			df = getData(equityCall, ticker)
-# 			print(df)
-# 			df.to_csv(fullname, header=False)
-#
-#
-# 	ZipFile(zipname, mode = "w").write(fullname, os.path.basename(fullname))
-# 	os.remove(fullname)
-
-
 def recieve():
     connection = pika.BlockingConnection(
     pika.ConnectionParameters(host="localhost"))
@@ -269,14 +152,14 @@ def recieve():
     channel.start_consuming()
 
 
-def send(message):
+def send(message, queue, routingKey):
     connection = pika.BlockingConnection(
     pika.ConnectionParameters(host="localhost"))
     channel = connection.channel()
 
-    channel.queue_declare(queue="dataFetcher")
+    channel.queue_declare(queue=queue)
 
-    channel.basic_publish(exchange="", routing_key="dataFetcher", body=str(message))
+    channel.basic_publish(exchange="", routing_key=routingKey, body=str(message))
     print(" [x] Sent message")
 
     connection.close()
