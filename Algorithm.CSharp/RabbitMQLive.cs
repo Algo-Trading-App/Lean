@@ -57,7 +57,7 @@ namespace QuantConnect.Algorithm.CSharp
 
 
             // Set up queue for RabbitMQ
-            channel.QueueDeclare(queue: "test",
+            channel.QueueDeclare(queue: "backtest",
                                     durable: false,
                                     exclusive: false,
                                     autoDelete: false,
@@ -85,14 +85,14 @@ namespace QuantConnect.Algorithm.CSharp
                 }
             };
 
-            channel.BasicConsume(queue: "tradeExecution",
+            channel.BasicConsume(queue: "backtest",
                                     autoAck: true,
                                     consumer: consumer);
         }
 
         public void OnData(TradeBars data)
         {
-            channel.BasicConsume(queue: "tradeExecution",
+            channel.BasicConsume(queue: "backtest",
                                         autoAck: true,
                                         consumer: consumer);
 
