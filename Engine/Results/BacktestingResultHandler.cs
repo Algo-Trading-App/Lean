@@ -226,7 +226,9 @@ namespace QuantConnect.Lean.Engine.Results
                         Algorithm.Transactions.TransactionRecord,
                         new Dictionary<string, string>(),
                         runtimeStatistics,
-                        new Dictionary<string, AlgorithmPerformance>()));
+                        new Dictionary<string, AlgorithmPerformance>(),
+                        // we store the last 100 order events, the final packet will contain the full list
+                        TransactionHandler.OrderEvents.Reverse().Take(100).ToList()));
 
                     StoreResult(new BacktestResultPacket(_job, completeResult, Algorithm.EndDate, Algorithm.StartDate, progress));
 
@@ -306,11 +308,15 @@ namespace QuantConnect.Lean.Engine.Results
                             result.Results.Statistics,
                             result.Results.RuntimeStatistics,
                             result.Results.RollingWindow,
+                            null, // null order events, we store them separately
                             result.Results.TotalPerformance,
                             result.Results.AlphaRuntimeStatistics));
                     }
                     // Save results
                     SaveResults(key, results);
+
+                    // Store Order Events in a separate file
+                    StoreOrderEvents(Algorithm.UtcTime, result.Results.OrderEvents);
                 }
                 else
                 {
@@ -344,10 +350,10 @@ namespace QuantConnect.Lean.Engine.Results
                 {
                     ap.ClosedTrades.Clear();
                 }
-
+                var orderEvents = TransactionHandler.OrderEvents.ToList();
                 //Create a result packet to send to the browser.
                 var result = new BacktestResultPacket(_job,
-                    new BacktestResult(new BacktestResultParameters(charts, orders, profitLoss, statisticsResults.Summary, runtime, statisticsResults.RollingPerformances, statisticsResults.TotalPerformance, AlphaRuntimeStatistics)),
+                    new BacktestResult(new BacktestResultParameters(charts, orders, profitLoss, statisticsResults.Summary, runtime, statisticsResults.RollingPerformances, orderEvents, statisticsResults.TotalPerformance, AlphaRuntimeStatistics)),
                     Algorithm.EndDate, Algorithm.StartDate)
                 {
                     ProcessingTime = (DateTime.UtcNow - StartTime).TotalSeconds,

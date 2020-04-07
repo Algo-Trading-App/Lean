@@ -16,9 +16,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using QuantConnect.Data.UniverseSelection;
-using QuantConnect.Configuration;
 using QuantConnect.Logging;
-using QuantConnect.Util;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -62,7 +60,11 @@ namespace QuantConnect.Data.Custom.TradingEconomics
         /// Release time and date in UTC
         /// </summary>
         [JsonProperty(PropertyName = "Date"), JsonConverter(typeof(TradingEconomicsDateTimeConverter))]
-        public override DateTime EndTime { get; set; }
+        public override DateTime EndTime
+        {
+            get { return Time; }
+            set { Time = value; }
+        }
 
         /// <summary>
         /// Country name
@@ -183,12 +185,6 @@ namespace QuantConnect.Data.Custom.TradingEconomics
         public string Ticker { get; set; }
 
         /// <summary>
-        /// Unique symbol used by Trading Economics
-        /// </summary>
-        [JsonProperty(PropertyName = "Symbol")]
-        public string TESymbol { get; set; }
-
-        /// <summary>
         /// Indicates whether the Actual, Previous, Forecast, TradingEconomicsForecast fields are reported as percent values
         /// </summary>
         public bool IsPercentage { get; set; }
@@ -276,7 +272,7 @@ namespace QuantConnect.Data.Custom.TradingEconomics
             instance.Reference = csv[i++].Trim('"');
             instance.Revised = csv[i++].IfNotNullOrEmpty<decimal?>(x => Parse.Decimal(x));
             instance.Source = csv[i++].Trim('"');
-            instance.TESymbol = csv[i++];
+            i++;
             instance.TradingEconomicsForecast = csv[i++].IfNotNullOrEmpty<decimal?>(x => Parse.Decimal(x));
             instance.Symbol = config.Symbol;
 
@@ -309,7 +305,6 @@ namespace QuantConnect.Data.Custom.TradingEconomics
                 OCountry = Country,
                 OCategory = OCategory,
                 Ticker = Ticker,
-                TESymbol = TESymbol,
                 IsPercentage = IsPercentage,
 
 
@@ -323,8 +318,7 @@ namespace QuantConnect.Data.Custom.TradingEconomics
         /// </summary>
         public override string ToString()
         {
-            var symbol = string.IsNullOrWhiteSpace(TESymbol) ? Ticker : TESymbol;
-            return Invariant($"{symbol} ({Country} - {Category}): {Event} : Importance.{Importance}");
+            return Invariant($"{Ticker} ({Country} - {Category}): {Event} : Importance.{Importance}");
         }
 
         /// <summary>
@@ -353,7 +347,7 @@ namespace QuantConnect.Data.Custom.TradingEconomics
                 $"\"{Reference}\"",
                 Revised.ToStringInvariant(),
                 $"\"{Source}\"",
-                TESymbol,
+                string.Empty,
                 TradingEconomicsForecast.ToStringInvariant()
             );
         }
@@ -405,6 +399,8 @@ namespace QuantConnect.Data.Custom.TradingEconomics
                 rawData["Forecast"] = ParseDecimal(rawData["Forecast"].Value<string>(), inPercentage);
                 rawData["TEForecast"] = ParseDecimal(rawData["TEForecast"].Value<string>(), inPercentage);
                 rawData["Revised"] = ParseDecimal(rawData["Revised"].Value<string>(), inPercentage);
+
+                ((JObject)rawData).Remove("Symbol");
             }
 
             return rawCollection.ToObject<List<TradingEconomicsCalendar>>();

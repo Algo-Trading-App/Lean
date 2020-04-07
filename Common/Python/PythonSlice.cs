@@ -54,19 +54,7 @@ namespace QuantConnect.Python
         /// </summary>
         /// <param name="slice">slice object to wrap</param>
         public PythonSlice(Slice slice)
-            : base(slice.Time,
-                Enumerable.Empty<BaseData>(),
-                slice.Bars,
-                slice.QuoteBars,
-                slice.Ticks,
-                slice.OptionChains,
-                slice.FuturesChains,
-                slice.Splits,
-                slice.Dividends,
-                slice.Delistings,
-                slice.SymbolChangedEvents,
-                slice.HasData
-                )
+            : base(slice)
         {
             _slice = slice;
         }
@@ -99,7 +87,7 @@ namespace QuantConnect.Python
         /// <summary>
         /// Gets the number of symbols held in this slice
         /// </summary>
-        public new int Count
+        public override int Count
         {
             get { return _slice.Count; }
         }
@@ -107,7 +95,7 @@ namespace QuantConnect.Python
         /// <summary>
         /// Gets all the symbols in this slice
         /// </summary>
-        public new IReadOnlyList<Symbol> Keys
+        public override IReadOnlyList<Symbol> Keys
         {
             get { return _slice.Keys; }
         }
@@ -115,7 +103,7 @@ namespace QuantConnect.Python
         /// <summary>
         /// Gets a list of all the data in this slice
         /// </summary>
-        public new IReadOnlyList<BaseData> Values
+        public override IReadOnlyList<BaseData> Values
         {
             get { return _slice.Values; }
         }
@@ -128,7 +116,7 @@ namespace QuantConnect.Python
         /// </summary>
         /// <param name="symbol">The data's symbols</param>
         /// <returns>The data for the specified symbol</returns>
-        public new dynamic this[Symbol symbol]
+        public override dynamic this[Symbol symbol]
         {
             get
             {
@@ -158,7 +146,7 @@ namespace QuantConnect.Python
         /// </summary>
         /// <param name="symbol">The symbol we seek data for</param>
         /// <returns>True if this instance contains data for the symbol, false otherwise</returns>
-        public new bool ContainsKey(Symbol symbol)
+        public override bool ContainsKey(Symbol symbol)
         {
             return _slice.ContainsKey(symbol);
         }
@@ -169,7 +157,7 @@ namespace QuantConnect.Python
         /// <param name="symbol">The symbol we want data for</param>
         /// <param name="data">The data for the specifed symbol, or null if no data was found</param>
         /// <returns>True if data was found, false otherwise</returns>
-        public new bool TryGetValue(Symbol symbol, out dynamic data)
+        public override bool TryGetValue(Symbol symbol, out dynamic data)
         {
             return _slice.TryGetValue(symbol, out data);
         }

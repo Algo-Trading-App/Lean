@@ -1,4 +1,4 @@
-﻿/*
+/*
  * QUANTCONNECT.COM - Democratizing Finance, Empowering Individuals.
  * Lean Algorithmic Trading Engine v2.0. Copyright 2014 QuantConnect Corporation.
  *
@@ -188,7 +188,7 @@ namespace QuantConnect.Data
         public void RemoveConsolidator(Symbol symbol, IDataConsolidator consolidator)
         {
             // remove consolidator from each subscription
-            foreach (var subscription in Subscriptions.Where(x => x.Symbol == symbol))
+            foreach (var subscription in _subscriptionManager.GetSubscriptionDataConfigs(symbol))
             {
                 subscription.Consolidators.Remove(consolidator);
             }
@@ -206,7 +206,7 @@ namespace QuantConnect.Data
             {
                 {SecurityType.Base, new List<TickType> {TickType.Trade}},
                 {SecurityType.Forex, new List<TickType> {TickType.Quote}},
-                {SecurityType.Equity, new List<TickType> {TickType.Trade}},
+                {SecurityType.Equity, new List<TickType> {TickType.Trade, TickType.Quote}},
                 {SecurityType.Option, new List<TickType> {TickType.Quote, TickType.Trade, TickType.OpenInterest}},
                 {SecurityType.Cfd, new List<TickType> {TickType.Quote}},
                 {SecurityType.Future, new List<TickType> {TickType.Quote, TickType.Trade, TickType.OpenInterest}},

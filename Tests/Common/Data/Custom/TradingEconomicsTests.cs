@@ -20,9 +20,7 @@ using QuantConnect.Data.Custom.TradingEconomics;
 using QuantConnect.Data.UniverseSelection;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace QuantConnect.Tests.Common.Data.Custom
 {
@@ -49,11 +47,9 @@ namespace QuantConnect.Tests.Common.Data.Custom
   ""OCountry"": ""United States"",
   ""OCategory"": ""PPI PCE"",
   ""Ticker"": ""US"",
-  ""Symbol"": ""US"",
   ""IsPercentage"": true,
   ""DataType"": 0,
   ""IsFillForward"": false,
-  ""Time"": ""0001-01-01T00:00:00"",
   ""Value"": 0.0,
   ""Price"": 0.0
 }]";
@@ -82,7 +78,6 @@ namespace QuantConnect.Tests.Common.Data.Custom
   ""Symbol"": ""US"",
   ""DataType"": 0,
   ""IsFillForward"": false,
-  ""Time"": ""0001-01-01T00:00:00"",
   ""Value"": 0.0,
   ""Price"": 0.0
 }]";
@@ -131,6 +126,7 @@ namespace QuantConnect.Tests.Common.Data.Custom
             var calendar = (TradingEconomicsCalendar)result;
 
             Assert.AreEqual("0", calendar.CalendarId);
+            Assert.AreEqual(new DateTime(2019, 1, 1), calendar.Time.Date);
             Assert.AreEqual(new DateTime(2019, 1, 1), calendar.EndTime.Date);
             Assert.AreEqual("United States", calendar.Country);
             Assert.AreEqual("PPI PCE", calendar.Category);
@@ -176,6 +172,7 @@ namespace QuantConnect.Tests.Common.Data.Custom
             var calendar = (TradingEconomicsCalendar)((BaseDataCollection)result).Data.Single();
 
             Assert.AreEqual("0", calendar.CalendarId);
+            Assert.AreEqual(new DateTime(2019, 1, 1), calendar.Time.Date);
             Assert.AreEqual(new DateTime(2019, 1, 1), calendar.EndTime.Date);
             Assert.AreEqual("United States", calendar.Country);
             Assert.AreEqual("PPI PCE", calendar.Category);
@@ -241,6 +238,7 @@ namespace QuantConnect.Tests.Common.Data.Custom
             var calendarLive = (TradingEconomicsCalendar)((BaseDataCollection)resultLive).Data.Single();
 
             Assert.AreEqual(calendarBacktest.CalendarId, calendarLive.CalendarId);
+            Assert.AreEqual(calendarBacktest.Time.Date, calendarLive.Time.Date);
             Assert.AreEqual(calendarBacktest.EndTime.Date, calendarLive.EndTime.Date);
             Assert.AreEqual(calendarBacktest.Country, calendarLive.Country);
             Assert.AreEqual(calendarBacktest.Category, calendarLive.Category);
@@ -336,6 +334,7 @@ namespace QuantConnect.Tests.Common.Data.Custom
                     false
                 );
                 Assert.AreEqual("0", calendar.CalendarId);
+                Assert.AreEqual(new DateTime(2019, 1, 1), calendar.Time.Date);
                 Assert.AreEqual(new DateTime(2019, 1, 1), calendar.EndTime.Date);
                 Assert.AreEqual("United States", calendar.Country);
                 Assert.AreEqual("PPI PCE", calendar.Category);
@@ -384,6 +383,46 @@ namespace QuantConnect.Tests.Common.Data.Custom
         {
             // Cast inside since we can't pass in decimal values through TestCase attributes
             Assert.AreEqual((decimal?)expected, TradingEconomicsCalendar.ParseDecimal(value, inPercentage));
+        }
+
+        [Test]
+        public void SerializeRoundTrip()
+        {
+            var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+
+            var time = new DateTime(2020, 3, 20, 14, 0, 0);
+            var symbol = Symbol.Create(
+                TradingEconomics.Calendar.UnitedStates.ExistingHomeSales,
+                SecurityType.Base,
+                QuantConnect.Market.USA,
+                baseDataType: typeof(TradingEconomicsCalendar)
+            );
+
+            var item = new TradingEconomicsCalendar
+            {
+                Country = "United States",
+                Category = "Existing Home Sales",
+                Importance = TradingEconomicsImportance.Medium,
+                Event = "existing home sales",
+                Actual = 5770000m,
+                Previous = 5460000m,
+                LastUpdate = time,
+                EndTime = time,
+                Symbol = symbol,
+            };
+
+            var serialized = JsonConvert.SerializeObject(item, settings);
+            var deserialized = JsonConvert.DeserializeObject<TradingEconomicsCalendar>(serialized, settings);
+
+            Assert.AreEqual("United States", deserialized.Country);
+            Assert.AreEqual("Existing Home Sales", deserialized.Category);
+            Assert.AreEqual(TradingEconomicsImportance.Medium, deserialized.Importance);
+            Assert.AreEqual(5770000m, deserialized.Actual);
+            Assert.AreEqual(5460000m, deserialized.Previous);
+            Assert.AreEqual(time, deserialized.LastUpdate);
+            Assert.AreEqual(time, deserialized.Time);
+            Assert.AreEqual(time, deserialized.EndTime);
+            Assert.AreEqual(symbol, deserialized.Symbol);
         }
     }
 }

@@ -27,6 +27,7 @@ using QuantConnect.Lean.Engine.DataFeeds;
 using QuantConnect.Lean.Engine.TransactionHandlers;
 using QuantConnect.Logging;
 using QuantConnect.Orders;
+using QuantConnect.Orders.Serialization;
 using QuantConnect.Packets;
 using QuantConnect.Statistics;
 
@@ -41,6 +42,11 @@ namespace QuantConnect.Lean.Engine.Results
         /// The last position consumed from the <see cref="ITransactionHandler.OrderEvents"/> by <see cref="GetDeltaOrders"/>
         /// </summary>
         protected int LastDeltaOrderPosition;
+
+        /// <summary>
+        /// The last position consumed from the <see cref="ITransactionHandler.OrderEvents"/> while determining delta order events
+        /// </summary>
+        protected int LastDeltaOrderEventsPosition;
 
         /// <summary>
         /// The task in charge of running the <see cref="Run"/> update method
@@ -161,7 +167,12 @@ namespace QuantConnect.Lean.Engine.Results
         /// Directory location to store results
         /// </summary>
         protected string ResultsDestinationFolder;
-        
+
+        /// <summary>
+        /// The order event json converter instance to use
+        /// </summary>
+        protected OrderEventJsonConverter OrderEventJsonConverter { get; set; }
+
         /// <summary>
         /// Creates a new instance
         /// </summary>
@@ -184,6 +195,24 @@ namespace QuantConnect.Lean.Engine.Results
         /// <param name="newEvent">New event details</param>
         public virtual void OrderEvent(OrderEvent newEvent)
         {
+        }
+
+        /// <summary>
+        /// Stores the order events
+        /// </summary>
+        /// <param name="utcTime">The utc date associated with these order events</param>
+        /// <param name="orderEvents">The order events to store</param>
+        protected virtual void StoreOrderEvents(DateTime utcTime, List<OrderEvent> orderEvents)
+        {
+            if (orderEvents.Count <= 0)
+            {
+                return;
+            }
+
+            var path = $"{AlgorithmId}-order-events.json";
+            var data = JsonConvert.SerializeObject(orderEvents, Formatting.None, OrderEventJsonConverter);
+
+            File.WriteAllText(path, data);
         }
 
         /// <summary>
@@ -237,6 +266,7 @@ namespace QuantConnect.Lean.Engine.Results
             TransactionHandler = transactionHandler;
             CompileId = job.CompileId;
             AlgorithmId = job.AlgorithmId;
+            OrderEventJsonConverter = new OrderEventJsonConverter(AlgorithmId);
             _updateRunner = new Thread(Run, 0) { IsBackground = true, Name = "Result Thread" };
             _updateRunner.Start();
         }
