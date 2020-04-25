@@ -43,8 +43,8 @@ namespace QuantConnect.Algorithm.CSharp
         /// </summary>
         public override void Initialize()
         {
-            SetStartDate(2012, 10, 07);  //Set Start Date
-            SetEndDate(2019, 10, 11);    //Set End Date
+            SetStartDate(2018, 01, 01);  //Set Start Date
+            SetEndDate(2019, 01, 31);    //Set End Date
             SetCash(1000000);             //Set Strategy Cash
 
             // Create new connection factory
@@ -83,6 +83,9 @@ namespace QuantConnect.Algorithm.CSharp
                 if (result == null)
                 {
                     // No message available at this time.
+                    //SetStartDate(2012, 10, 07);  //Set Start Date
+                    //SetEndDate(2019, 10, 11);    //Set End Date
+                    //SetCash(1000000);             //Set Strategy Cash
                 }
                 else
                 {
@@ -91,6 +94,11 @@ namespace QuantConnect.Algorithm.CSharp
                     var message = Encoding.UTF8.GetString(body);
                     jsonmessage = JObject.Parse(message);
 
+
+                    // TODO change this to parse start dates from JSON
+                    //SetStartDate(2018, 10, 07);  //Set Start Date
+                    //SetEndDate(2019, 10, 11);    //Set End Date
+                    //SetCash(1000000);             //Set Strategy Cash
 
 
                     foreach (string element in jsonmessage["timeFrames"][0]["securities"].ToObject<List<string>>())
@@ -141,6 +149,8 @@ namespace QuantConnect.Algorithm.CSharp
             {
                 foreach (string element in equityList)
                 {
+                    Debug(element);
+                    //TODO change purchase from 0.1 to values parsed from JSON
                     SetHoldings(element, 0.1);
                 }
 

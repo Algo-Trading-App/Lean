@@ -2,16 +2,16 @@
     "timeFrames":[
         {
             "securities":[
+                "ADSK",
                 "CXO",
-                "COP",
                 "EQIX",
-                "ILMN",
-                "M",
                 "MRO",
                 "MPC",
+                "NFLX",
                 "NEM",
                 "PCG",
-                "RHT"
+                "RHT",
+                "SBAC"
             ],
             "securityType":"equities",
             "startTime":"2018-01-01",

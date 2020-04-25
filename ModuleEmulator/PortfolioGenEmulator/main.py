@@ -8,7 +8,7 @@ import pandas
 from zipfile import ZipFile
 
 # Quandl API Key
-API_KEY = "PgJuoJUUrmZVu75mRUD2"
+API_KEY = "b5wYcieS5ZYxGvJNN7yW"
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
 def callback(ch, method, properties, body):
 	try:
 		equityCall = body.decode("utf8").replace("\'", "\"")
-		equityCall = json.loads(equityCall)
+		equityCall = json.loads(equityCall) 
 
 		print(equityCall)
 
