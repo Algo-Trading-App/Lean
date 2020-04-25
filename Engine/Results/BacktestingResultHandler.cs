@@ -166,7 +166,7 @@ namespace QuantConnect.Lean.Engine.Results
                 try
                 {
                     _daysProcessedFrontier = _daysProcessed + 1;
-                    _nextUpdate = DateTime.UtcNow.AddSeconds(2);
+                    _nextUpdate = DateTime.UtcNow.AddSeconds(3);
                 }
                 catch (Exception err)
                 {
@@ -270,8 +270,12 @@ namespace QuantConnect.Lean.Engine.Results
             // Send alpha run time statistics
             splitPackets.Add(new BacktestResultPacket(_job, new BacktestResult { AlphaRuntimeStatistics = AlphaRuntimeStatistics }, Algorithm.EndDate, Algorithm.StartDate, progress));
 
-            // Add the orders into the charting packet:
-            splitPackets.Add(new BacktestResultPacket(_job, new BacktestResult { Orders = deltaOrders }, Algorithm.EndDate, Algorithm.StartDate, progress));
+            // only send orders if there is actually any update
+            if (deltaOrders.Count > 0)
+            {
+                // Add the orders into the charting packet:
+                splitPackets.Add(new BacktestResultPacket(_job, new BacktestResult { Orders = deltaOrders }, Algorithm.EndDate, Algorithm.StartDate, progress));
+            }
 
             //Add any user runtime statistics into the backtest.
             splitPackets.Add(new BacktestResultPacket(_job, new BacktestResult { RuntimeStatistics = runtimeStatistics }, Algorithm.EndDate, Algorithm.StartDate, progress));
@@ -481,7 +485,7 @@ namespace QuantConnect.Lean.Engine.Results
             AddToLogStore(message);
         }
 
-        private void AddToLogStore(string message)
+        protected override void AddToLogStore(string message)
         {
             lock (LogStore)
             {
@@ -719,51 +723,7 @@ namespace QuantConnect.Lean.Engine.Results
                 SampleRange(Algorithm.GetChartUpdates());
             }
 
-            long endTime;
-            // avoid calling utcNow if not required
-            if (Algorithm.DebugMessages.Count > 0)
-            {
-                //Send out the debug messages:
-                endTime = DateTime.UtcNow.AddMilliseconds(250).Ticks;
-                while (Algorithm.DebugMessages.Count > 0 && DateTime.UtcNow.Ticks < endTime)
-                {
-                    string message;
-                    if (Algorithm.DebugMessages.TryDequeue(out message))
-                    {
-                        DebugMessage(message);
-                    }
-                }
-            }
-
-            // avoid calling utcNow if not required
-            if (Algorithm.ErrorMessages.Count > 0)
-            {
-                //Send out the error messages:
-                endTime = DateTime.UtcNow.AddMilliseconds(250).Ticks;
-                while (Algorithm.ErrorMessages.Count > 0 && DateTime.UtcNow.Ticks < endTime)
-                {
-                    string message;
-                    if (Algorithm.ErrorMessages.TryDequeue(out message))
-                    {
-                        ErrorMessage(message);
-                    }
-                }
-            }
-
-            // avoid calling utcNow if not required
-            if (Algorithm.LogMessages.Count > 0)
-            {
-                //Send out the log messages:
-                endTime = DateTime.UtcNow.AddMilliseconds(250).Ticks;
-                while (Algorithm.LogMessages.Count > 0 && DateTime.UtcNow.Ticks < endTime)
-                {
-                    string message;
-                    if (Algorithm.LogMessages.TryDequeue(out message))
-                    {
-                        LogMessage(message);
-                    }
-                }
-            }
+            ProcessAlgorithmLogs();
 
             //Set the running statistics:
             foreach (var pair in Algorithm.RuntimeStatistics)

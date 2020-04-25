@@ -481,7 +481,6 @@ namespace QuantConnect.Lean.Engine.Results
             // these are easier to split up, not as big as the chart objects
             var packets = new[]
             {
-                new LiveResultPacket(_job, new LiveResult { Orders = deltaOrders, OrderEvents = deltaOrderEvents}),
                 new LiveResultPacket(_job, new LiveResult { Holdings = holdings, Cash = cashbook}),
                 new LiveResultPacket(_job, new LiveResult
                 {
@@ -492,7 +491,15 @@ namespace QuantConnect.Lean.Engine.Results
                 })
             };
 
-            return packets.Concat(chartPackets);
+            var result = packets.Concat(chartPackets);
+
+            // only send order and order event packet if there is actually any update
+            if (deltaOrders.Count > 0 || deltaOrderEvents.Count > 0)
+            {
+                result= result.Concat(new []{ new LiveResultPacket(_job, new LiveResult { Orders = deltaOrders, OrderEvents = deltaOrderEvents }) });
+            }
+
+            return result;
         }
 
 
@@ -536,7 +543,7 @@ namespace QuantConnect.Lean.Engine.Results
         /// Save an algorithm message to the log store. Uses a different timestamped method of adding messaging to interweve debug and logging messages.
         /// </summary>
         /// <param name="message">String message to send to browser.</param>
-        private void AddToLogStore(string message)
+        protected override void AddToLogStore(string message)
         {
             Log.Debug("LiveTradingResultHandler.AddToLogStore(): Adding");
             lock (LogStore)
@@ -1072,38 +1079,7 @@ namespace QuantConnect.Lean.Engine.Results
                 SampleRange(Algorithm.GetChartUpdates(true));
             }
 
-            //Send out the debug messages:
-            var debugStopWatch = Stopwatch.StartNew();
-            while (Algorithm.DebugMessages.Count > 0 && debugStopWatch.ElapsedMilliseconds < 250)
-            {
-                string message;
-                if (Algorithm.DebugMessages.TryDequeue(out message))
-                {
-                    DebugMessage(message);
-                }
-            }
-
-            //Send out the error messages:
-            var errorStopWatch = Stopwatch.StartNew();
-            while (Algorithm.ErrorMessages.Count > 0 && errorStopWatch.ElapsedMilliseconds < 250)
-            {
-                string message;
-                if (Algorithm.ErrorMessages.TryDequeue(out message))
-                {
-                    ErrorMessage(message);
-                }
-            }
-
-            //Send out the log messages:
-            var logStopWatch = Stopwatch.StartNew();
-            while (Algorithm.LogMessages.Count > 0 && logStopWatch.ElapsedMilliseconds < 250)
-            {
-                string message;
-                if (Algorithm.LogMessages.TryDequeue(out message))
-                {
-                    LogMessage(message);
-                }
-            }
+            ProcessAlgorithmLogs(messageQueueLimit: 500);
 
             //Set the running statistics:
             foreach (var pair in Algorithm.RuntimeStatistics)

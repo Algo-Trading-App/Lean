@@ -167,12 +167,14 @@
     <Compile Include="AltData\TiingoNewsAlgorithm.cs" />
     <Compile Include="AutomaticIndicatorWarmupDataTypeRegressionAlgorithm.cs" />
     <Compile Include="AutomaticIndicatorWarmupRegressionAlgorithm.cs" />
+    <Compile Include="CustomPartialFillModelAlgorithm.cs" />
     <Compile Include="EquityTradeAndQuotesRegressionAlgorithm.cs" />
     <Compile Include="BasicTemplateConstituentUniverseAlgorithm.cs" />
     <Compile Include="ConsolidateRegressionAlgorithm.cs" />
     <Compile Include="DefaultResolutionRegressionAlgorithm.cs" />
     <Compile Include="BasicPythonIntegrationTemplateAlgorithm.cs" />
     <Compile Include="BasicSetAccountCurrencyAlgorithm.cs" />
+    <Compile Include="FineFundamentalFilteredUniverseRegressionAlgorithm.cs" />
     <Compile Include="LongOnlyAlphaStreamAlgorithm.cs" />
     <Compile Include="Benchmarks\SECReportBenchmarkAlgorithm.cs" />
     <Compile Include="Benchmarks\SmartInsiderEventBenchmarkAlgorithm.cs" />
@@ -182,7 +184,7 @@
     <Compile Include="CustomDataAddDataRegressionAlgorithm.cs" />
     <Compile Include="DynamicSecurityDataAlgorithm.cs" />
     <Compile Include="ConfidenceWeightedFrameworkAlgorithm.cs" />
-    <Compile Include="AccumulativeInsightFrameworkAlgorithm.cs" />
+    <Compile Include="AccumulativeInsightPortfolioRegressionAlgorithm.cs" />
     <Compile Include="EqualWeightingPortfolioConstructionModelFutureRegressionAlgorithm.cs" />
     <Compile Include="FreePortfolioValueRegressionAlgorithm.cs" />
     <Compile Include="LeveragePrecedenceRegressionAlgorithm.cs" />
@@ -191,6 +193,7 @@
     <Compile Include="MarginRemainingRegressionAlgorithm.cs" />
     <Compile Include="NoMarginCallExpectedRegressionAlgorithm.cs" />
     <Compile Include="ObjectStoreExampleAlgorithm.cs" />
+    <Compile Include="OrderSubmissionDataRegressionAlgorithm.cs" />
     <Compile Include="RegisterIndicatorRegressionAlgorithm.cs" />
     <Compile Include="ScheduledEventsOrderRegressionAlgorithm.cs" />
     <Compile Include="SectorWeightingFrameworkAlgorithm.cs" />
@@ -201,6 +204,7 @@
     <Compile Include="PortfolioRebalanceOnSecurityChangesRegressionAlgorithm.cs" />
     <Compile Include="ResolutionSwitchingAlgorithm.cs" />
     <Compile Include="SetHoldingsFutureRegressionAlgorithm.cs" />
+    <Compile Include="StringToSymbolImplicitConversionRegressionAlgorithm.cs" />
     <Compile Include="TimeRulesDefaultTimeZoneRegressionAlgorithm.cs" />
     <Compile Include="SetHoldingsMultipleTargetsRegressionAlgorithm.cs" />
     <Compile Include="SetHoldingsMarketOnOpenRegressionAlgorithm.cs" />
