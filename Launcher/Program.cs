@@ -161,11 +161,13 @@ namespace QuantConnect.Lean.Launcher
                         var message = Encoding.UTF8.GetString(body);
                         JObject jsonmessage = JObject.Parse(message);
 
+                        Log.Trace("Gets here!");
 
-                        foreach (string element in jsonmessage["timeFrames"])
-                        {
-                            Log.Trace(element);
-                        }
+
+                        //foreach (string element in jsonmessage["timeFrames"])
+                        //{
+                        //    Log.Trace(element);
+                        //}
                     }
 
 
