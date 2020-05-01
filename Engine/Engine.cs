@@ -308,6 +308,7 @@ namespace QuantConnect.Lean.Engine
                     AlgorithmHandlers.Results.DebugMessage(
                         $"Launching analysis for {job.AlgorithmId} with LEAN Engine v{Globals.Version}");
 
+
                     try
                     {
                         //Create a new engine isolator class

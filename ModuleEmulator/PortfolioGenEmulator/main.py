@@ -24,7 +24,7 @@ def main():
 def callback(ch, method, properties, body):
 	try:
 		equityCall = body.decode("utf8").replace("\'", "\"")
-		equityCall = json.loads(equityCall) 
+		equityCall = json.loads(equityCall)
 
 		print(equityCall)
 
