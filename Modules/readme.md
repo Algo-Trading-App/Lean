@@ -1,4 +1,5 @@
 
+
 ## Module Overview ##
 
 These are the modules that have been developed as the endpoints for Lean's interactivity:
@@ -17,16 +18,14 @@ These are the modules that have been developed as the endpoints for Lean's inter
 5. That should be it and you should be ready to go :)
 ## Running Instructions(In order) ##
 **Data Fetcher Emulator**
-1. To run the data fetcher module, you must first run `python main.py` from the directory `/DataFetcher`.
-2. Once the DataFetcher module is actively running and waiting for an input from module emulator, run `python main.py` from the directory `/ModuleEmulator/DataFetcherEmulator`.
-3. This emulator simulates a RabbitMQ call to the DataFetcher using a query generated from the JSON in `/ModuleEmulator/DataFetcherEmulator` called `/ModuleEmulator/DataFetcherEmulator`
-4. If working correctly the data from the JSON should be loading into the required directory for use in the Lean Instance.
+1. To run the data fetcher module, you must run `python main.py` from the directory `/Modules` with the `-d` flag.
+2. This emulator simulates a RabbitMQ call to the DataFetcher using a query generated from the JSON in `/Modules/DataFetcher` called `/Modules/DataFetcher`
+3. If working correctly the data from the JSON should be loading into the required directory for use in the Lean Instance.
 
 **Portfolio Generator Emulator**
-5. To run the Portfolio generator module, you must first run `python main.py` from the directory `/DataFetcher`.
-6. Once the DataFetcher module is actively running and waiting for an input from module emulator, run `python main.py` from the directory `/ModuleEmulator/PortfolioGenEmulator`.
-7. This emulator simulates a RabbitMQ call to the DataFetcher using a query generated from the JSON in `ModuleEmulator/PortfolioGenEmulator` called `ModuleEmulator/PortfolioGeneratorQuery.json`
-8. If working correctly the data from the JSON should be loading into the required directory for use in the Lean Instance.
+5. To run the Portfolio generator module, you must first run `python main.py` from the directory `/Modules` with the `-g` flag.
+6. This makes a call to the DataFetcher using a query generated from the JSON in `ModuleEmulator/PortfolioGenEmulator` called `ModuleEmulator/PortfolioGeneratorQuery.json`
+7. If working correctly the data from the JSON should be loading into the required directory for use in the Lean Instance.
 
 **Lean Backtest**
 9. Once the program has finished compiling and has started running, make sure the data fetcher module is running.
