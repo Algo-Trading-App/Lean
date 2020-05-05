@@ -16,18 +16,12 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.IO;
-using System.Text;
 using System.Threading;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using QuantConnect.Configuration;
 using QuantConnect.Lean.Engine;
 using QuantConnect.Logging;
 using QuantConnect.Packets;
 using QuantConnect.Util;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 namespace QuantConnect.Lean.Launcher
 {
@@ -50,9 +44,9 @@ namespace QuantConnect.Lean.Launcher
         {
             //Initialize:
             var mode = "RELEASE";
-            #if DEBUG
-                mode = "DEBUG";
-            #endif
+#if DEBUG
+            mode = "DEBUG";
+#endif
 
             if (OS.IsWindows)
             {
@@ -129,72 +123,11 @@ namespace QuantConnect.Lean.Launcher
             try
             {
                 var algorithmManager = new AlgorithmManager(liveMode, job);
+
                 leanEngineSystemHandlers.LeanManager.Initialize(leanEngineSystemHandlers, leanEngineAlgorithmHandlers, job, algorithmManager);
 
                 var engine = new Engine.Engine(leanEngineSystemHandlers, leanEngineAlgorithmHandlers, liveMode);
-
-
-                // Create new connection factory
-                var factory = new ConnectionFactory()
-                {
-                    HostName = "localhost"
-                };
-
-                using (var connection = factory.CreateConnection())
-                using (var channel = connection.CreateModel())
-                {
-                    // Set up queue for RabbitMQ
-                    channel.QueueDeclare(queue: "backtest",
-                                         durable: false,
-                                         exclusive: false,
-                                         autoDelete: false,
-                                         arguments: null);
-
-                    // Create object for rabbitMQ producer
-                    var consumer = new EventingBasicConsumer(channel);
-
-                    // Get single call to clear queue
-                    BasicGetResult result = channel.BasicGet("backtest", false);
-                    if (result == null)
-                    {
-                        // No message available at this time.
-                        Log.Trace("No backtests being called");
-                    }
-                    else
-                    {
-                        IBasicProperties props = result.BasicProperties;
-                        byte[] body = result.Body;
-                        var message = Encoding.UTF8.GetString(body);
-                        JObject jsonmessage = JObject.Parse(message);
-
-                        Log.Trace("Gets here!");
-
-
-                        //foreach (string element in jsonmessage["timeFrames"])
-                        //{
-                        //    Log.Trace(element);
-                        //}
-                    }
-
-
-                    // Set up consumer message handler
-                    consumer.Received += (model, ea) =>
-                    {
-                        //Debug("THIS COMSUMER RECIEVE IS BEING CALLED");
-                        var body = ea.Body;
-                        var message = Encoding.UTF8.GetString(body);
-                        JObject jsonmessage = JObject.Parse(message);
-
-                        Log.Trace("Gets this");
-
-                        job = leanEngineSystemHandlers.JobQueue.NextJob(out assemblyPath);
-                        engine.Run(job, algorithmManager, assemblyPath, WorkerThread.Instance);
-                    };
-
-                    channel.BasicConsume(queue: "backtest",
-                                            autoAck: true,
-                                            consumer: consumer);
-                }
+                engine.Run(job, algorithmManager, assemblyPath, WorkerThread.Instance);
             }
             finally
             {
