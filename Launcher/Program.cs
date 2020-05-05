@@ -128,6 +128,12 @@ namespace QuantConnect.Lean.Launcher
 
             try
             {
+                var algorithmManager = new AlgorithmManager(liveMode, job);
+                leanEngineSystemHandlers.LeanManager.Initialize(leanEngineSystemHandlers, leanEngineAlgorithmHandlers, job, algorithmManager);
+
+                var engine = new Engine.Engine(leanEngineSystemHandlers, leanEngineAlgorithmHandlers, liveMode);
+
+
                 // Create new connection factory
                 var factory = new ConnectionFactory()
                 {
@@ -181,11 +187,7 @@ namespace QuantConnect.Lean.Launcher
 
                         Log.Trace("Gets this");
 
-                        var algorithmManager = new AlgorithmManager(liveMode, job);
-                        leanEngineSystemHandlers.LeanManager.Initialize(leanEngineSystemHandlers, leanEngineAlgorithmHandlers, job, algorithmManager);
-
-                        var engine = new Engine.Engine(leanEngineSystemHandlers, leanEngineAlgorithmHandlers, liveMode);
-
+                        job = leanEngineSystemHandlers.JobQueue.NextJob(out assemblyPath);
                         engine.Run(job, algorithmManager, assemblyPath, WorkerThread.Instance);
                     };
 
