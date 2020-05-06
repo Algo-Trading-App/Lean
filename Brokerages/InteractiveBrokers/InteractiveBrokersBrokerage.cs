@@ -128,12 +128,15 @@ namespace QuantConnect.Brokerages.InteractiveBrokers
         // Prioritized list of exchanges used to find right futures contract
         private readonly Dictionary<string, string> _futuresExchanges = new Dictionary< string, string>
         {
-            { Market.Globex, "GLOBEX" },
+            { Market.CME, "GLOBEX" },
             { Market.NYMEX, "NYMEX" },
+            { Market.COMEX, "NYMEX" },
             { Market.CBOT, "ECBOT" },
             { Market.ICE, "NYBOT" },
             { Market.CBOE, "CFE" }
         };
+
+        private readonly SymbolPropertiesDatabase _symbolPropertiesDatabase = SymbolPropertiesDatabase.FromDataFolder();
 
         // exchange time zones by symbol
         private readonly Dictionary<Symbol, DateTimeZone> _symbolExchangeTimeZones = new Dictionary<Symbol, DateTimeZone>();
@@ -1115,7 +1118,7 @@ namespace QuantConnect.Brokerages.InteractiveBrokers
                     .FirstOrDefault();
         }
 
-        private IEnumerable<ContractDetails> FindContracts(Contract contract, string ticker)
+        public IEnumerable<ContractDetails> FindContracts(Contract contract, string ticker)
         {
             const int timeout = 60; // sec
 
@@ -1192,6 +1195,12 @@ namespace QuantConnect.Brokerages.InteractiveBrokers
             if (_requestInformation.TryGetValue(requestId, out requestMessage))
             {
                 errorMsg += ". Origin: " + requestMessage;
+            }
+
+            // historical data request with no data returned
+            if (errorCode == 162 && errorMsg.Contains("HMDS query returned no data"))
+            {
+                return;
             }
 
             Log.Trace($"InteractiveBrokersBrokerage.HandleError(): RequestId: {requestId} ErrorCode: {errorCode} - {errorMsg}");
@@ -1868,23 +1877,14 @@ namespace QuantConnect.Brokerages.InteractiveBrokers
 
             if (symbol.ID.SecurityType == SecurityType.Future)
             {
-                // if Market.USA is specified we automatically find exchange from the prioritized list
-                // Otherwise we convert Market.* markets into IB exchanges if we have them in our map
+                // we convert Market.* markets into IB exchanges if we have them in our map
 
                 contract.Symbol = ibSymbol;
                 contract.LastTradeDateOrContractMonth = symbol.ID.Date.ToStringInvariant(DateFormat.EightCharacter);
 
-                if (symbol.ID.Market == Market.USA)
-                {
-                    contract.Exchange = "";
-                    contract.Exchange = GetFuturesContractExchange(contract, symbol.Value);
-                }
-                else
-                {
-                    contract.Exchange = _futuresExchanges.ContainsKey(symbol.ID.Market) ?
-                                            _futuresExchanges[symbol.ID.Market] :
-                                            symbol.ID.Market;
-                }
+                contract.Exchange = _futuresExchanges.ContainsKey(symbol.ID.Market) ?
+                                        _futuresExchanges[symbol.ID.Market] :
+                                        symbol.ID.Market;
             }
 
             return contract;
@@ -2231,6 +2231,13 @@ namespace QuantConnect.Brokerages.InteractiveBrokers
 
             if (securityType == SecurityType.Future)
             {
+                var leanSymbol = _symbolMapper.GetLeanRootSymbol(ibSymbol);
+                var defaultMarket = market;
+                if (!_symbolPropertiesDatabase.TryGetMarket(leanSymbol, securityType, out market))
+                {
+                    market = defaultMarket;
+                }
+
                 var contractDate = DateTime.ParseExact(contract.LastTradeDateOrContractMonth, DateFormat.EightCharacter, CultureInfo.InvariantCulture);
 
                 return _symbolMapper.GetLeanSymbol(ibSymbol, securityType, market, contractDate);
