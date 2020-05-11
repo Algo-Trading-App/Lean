@@ -21,6 +21,7 @@ def main():
     if ("-g" in sys.argv):
         generator = PortfolioGenerator(API_KEY)
         generator.send(message, "backtest", "backtest")
+        generator.send(message, "backtestTrigger", "backtestTrigger")
         generator.recieve()
 
 

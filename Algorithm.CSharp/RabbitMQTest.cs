@@ -33,7 +33,6 @@ namespace QuantConnect.Algorithm.CSharp
     /// <meta name="tag" content="trading and orders" />
     public class RabbitMQTest : QCAlgorithm, IRegressionAlgorithmDefinition
     {
-        public const bool selfProduce = false;
         private JObject jsonmessage;
         private TradeBars tradeBars;
         private List<string> equityList = new List<string> { };
@@ -63,17 +62,6 @@ namespace QuantConnect.Algorithm.CSharp
                                      autoDelete: false,
                                      arguments: null);
 
-                if (selfProduce)
-                {
-                    // Create test message for RabbitMQProducer
-                    string producerMessage = "TSLA";
-                    var producerBody = Encoding.UTF8.GetBytes(producerMessage);
-
-                    channel.BasicPublish(exchange: "",
-                                         routingKey: "backtest",
-                                         basicProperties: null,
-                                         body: producerBody);
-                }
 
                 // Create object for rabbitMQ producer
                 var consumer = new EventingBasicConsumer(channel);

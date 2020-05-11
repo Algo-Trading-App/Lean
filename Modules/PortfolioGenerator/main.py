@@ -14,10 +14,12 @@ def main():
 	# Create porfolio generator instance
 	generator = PortfolioGenerator(API_KEY)
 
+	print("Fuck")
 	# Opens example message for RabbitMQMessage
 	with open("message/PortfolioGeneratorQuery.json", "r") as message:
 		message = json.loads(message.read())
 		generator.send(message, "backtest", "backtest")
+		generator.send(message, "backtestTrigger", "backtestTrigger")
 
 	generator.recieve()
 
@@ -57,7 +59,7 @@ class PortfolioGenerator():
 	    channel.queue_declare(queue=queue)
 
 	    channel.basic_publish(exchange="", routing_key=routingKey, body=str(message))
-	    print(" [x] Sent message")
+	    print(" [x] Sent message to queue:", queue)
 
 	    connection.close()
 
