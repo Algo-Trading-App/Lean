@@ -233,8 +233,16 @@ namespace QuantConnect.Jupyter
                         allSymbols.AddRange(OptionChainProvider.GetOptionContractList(symbol.Underlying, date));
                     }
                 }
+
+                var optionFilterUniverse = new OptionFilterUniverse();
+                var distinctSymbols = allSymbols.Distinct();
                 symbols = base.History(symbol.Underlying, start, end.Value, resolution)
-                    .SelectMany(x => option.ContractFilter.Filter(new OptionFilterUniverse(allSymbols.Distinct(), x)))
+                    .SelectMany(x =>
+                    {
+                        // the option chain symbols wont change so we can set 'exchangeDateChange' to false always
+                        optionFilterUniverse.Refresh(distinctSymbols, x, exchangeDateChange:false);
+                        return option.ContractFilter.Filter(optionFilterUniverse);
+                    })
                     .Distinct().Concat(new[] { symbol.Underlying });
             }
             else
@@ -271,7 +279,10 @@ namespace QuantConnect.Jupyter
                 {
                     if (future.Exchange.DateIsOpen(date))
                     {
-                        allSymbols.UnionWith(FutureChainProvider.GetFutureContractList(future.Symbol, date));
+                        var underlying = new Tick { Time = date };
+                        var allList = FutureChainProvider.GetFutureContractList(future.Symbol, date);
+
+                        allSymbols.UnionWith(future.ContractFilter.Filter(new FutureFilterUniverse(allList, underlying)));
                     }
                 }
             }
