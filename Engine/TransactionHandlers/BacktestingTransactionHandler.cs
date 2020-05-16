@@ -88,6 +88,7 @@ namespace QuantConnect.Lean.Engine.TransactionHandlers
 
             if (!ticket.OrderSet.WaitOne(0))
             {
+
                 // this could happen if there was some error handling the order
                 // and it was not set
                 Log.Error("BacktestingTransactionHandler.WaitForOrderSubmission(): " +

@@ -112,6 +112,7 @@ namespace QuantConnect.Algorithm.CSharp
                                         consumer: consumer);
 
                 //channel.QueuePurge("backtest");
+                channel.Close();
             }
 
             //symbol = QuantConnect.Symbol.Create(ticker, SecurityType.Equity, Market.USA);

@@ -61,6 +61,7 @@ namespace QuantConnect.Queues
         /// </summary>
         public void Initialize(IApi api)
         {
+           //Log.Trace(api.GetType().ToString());
             //
         }
 

@@ -29,7 +29,7 @@ namespace QuantConnect.Util
     {
         private readonly BlockingCollection<Action> _blockingCollection;
         private readonly CancellationTokenSource _threadCancellationTokenSource;
-        private readonly Thread _workerThread;
+        public readonly Thread _workerThread;
 
         /// <summary>
         /// The worker thread instance
@@ -89,6 +89,7 @@ namespace QuantConnect.Util
         {
             _blockingCollection.Add(action);
         }
+
 
         /// <summary>
         /// Disposes the worker thread.

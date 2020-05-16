@@ -132,6 +132,7 @@ namespace QuantConnect.Lean.Engine
                     IBrokerageFactory factory;
                     brokerage = AlgorithmHandlers.Setup.CreateBrokerage(job, algorithm, out factory);
 
+
                     var symbolPropertiesDatabase = SymbolPropertiesDatabase.FromDataFolder();
 
                     var registeredTypesProvider = new RegisteredSecurityDataTypesProvider();
@@ -169,6 +170,7 @@ namespace QuantConnect.Lean.Engine
                         AlgorithmHandlers.DataProvider,
                         dataManager,
                         (IDataFeedTimeProvider) synchronizer);
+
 
                     // set the order processor on the transaction manager (needs to be done before initializing BrokerageHistoryProvider)
                     algorithm.Transactions.SetOrderProcessor(AlgorithmHandlers.Transactions);
@@ -212,6 +214,8 @@ namespace QuantConnect.Lean.Engine
 
                     // initialize the default brokerage message handler
                     algorithm.BrokerageMessageHandler = factory.CreateBrokerageMessageHandler(algorithm, job, SystemHandlers.Api);
+
+                    factory.Dispose();
 
                     //Initialize the internal state of algorithm and job: executes the algorithm.Initialize() method.
                     initializeComplete = AlgorithmHandlers.Setup.Setup(new SetupHandlerParameters(dataManager.UniverseSelection, algorithm, brokerage, job, AlgorithmHandlers.Results, AlgorithmHandlers.Transactions, AlgorithmHandlers.RealTime, AlgorithmHandlers.ObjectStore));
@@ -268,6 +272,7 @@ namespace QuantConnect.Lean.Engine
                 if (job is LiveNodePacket) Log.Trace("         Brokerage:      " + brokerage?.GetType().FullName);
 
                 //-> Using the job + initialization: load the designated handlers:
+
                 if (initializeComplete)
                 {
                     // notify the LEAN manager that the algorithm is initialized and starting
@@ -383,6 +388,7 @@ namespace QuantConnect.Lean.Engine
                     {
                         Log.Error(err, "Error sending analysis results");
                     }
+
 
                     //Before we return, send terminate commands to close up the threads
                     AlgorithmHandlers.Transactions.Exit();

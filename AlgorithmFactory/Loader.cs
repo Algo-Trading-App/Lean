@@ -100,6 +100,14 @@ namespace QuantConnect.AlgorithmFactory
             _debugging = debugging;
             _language = language;
             _workerThread = workerThread;
+
+            if (workerThread._workerThread.ThreadState.ToString() == "Stopped")
+            {
+                Log.Trace("PENIS");
+                _workerThread._workerThread.Join();
+                Log.Trace(workerThread._workerThread.ThreadState.ToString());
+            }
+
             if (multipleTypeNameResolverFunction == null)
             {
                 throw new ArgumentNullException("multipleTypeNameResolverFunction");

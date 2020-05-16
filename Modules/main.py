@@ -22,6 +22,8 @@ def main():
         generator = PortfolioGenerator(API_KEY)
         generator.send(message, "backtest", "backtest")
         generator.send(message, "backtestTrigger", "backtestTrigger")
+        generator.send(message, "backtest", "backtest")
+        generator.send(message, "backtestTrigger", "backtestTrigger")
         generator.recieve()
 
 

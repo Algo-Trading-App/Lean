@@ -196,7 +196,7 @@ namespace QuantConnect.Brokerages.InteractiveBrokers
                 Config.Get("ib-host", "LOCALHOST"),
                 Config.GetInt("ib-port", 4001),
                 Config.Get("ib-tws-dir"),
-                Config.Get("ib-version", "974"),
+                Config.Get("ib-version", "978"),
                 Config.Get("ib-user-name"),
                 Config.Get("ib-password"),
                 Config.Get("ib-trading-mode"),
@@ -221,7 +221,7 @@ namespace QuantConnect.Brokerages.InteractiveBrokers
                 Config.Get("ib-host", "LOCALHOST"),
                 Config.GetInt("ib-port", 4001),
                 Config.Get("ib-tws-dir"),
-                Config.Get("ib-version", "974"),
+                Config.Get("ib-version", "978"),
                 Config.Get("ib-user-name"),
                 Config.Get("ib-password"),
                 Config.Get("ib-trading-mode"),
@@ -273,6 +273,15 @@ namespace QuantConnect.Brokerages.InteractiveBrokers
 
             // start IB Gateway
             _ibAutomater = new IBAutomater.IBAutomater(ibDirectory, ibVersion, userName, password, tradingMode, port);
+
+            Console.WriteLine(ibDirectory);
+            Console.WriteLine(ibVersion);
+            Console.WriteLine(userName);
+            Console.WriteLine(password);
+            Console.WriteLine(tradingMode);
+            Console.WriteLine(port);
+
+
             _ibAutomater.OutputDataReceived += OnIbAutomaterOutputDataReceived;
             _ibAutomater.ErrorDataReceived += OnIbAutomaterErrorDataReceived;
             _ibAutomater.Exited += OnIbAutomaterExited;
