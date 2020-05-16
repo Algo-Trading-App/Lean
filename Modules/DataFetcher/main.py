@@ -36,6 +36,7 @@ class DataFetcher():
 
 				# haewon code: if the security is equity or forex or option or future or crpyto
 				print(timeFrame["securityType"])
+				# Gets each equity details from the timeframe
 				for equity in timeFrame["securities"]:
 					print(self.getData(timeFrame, equity, timeFrame["securityType"]))
 					self.writeData(timeFrame, equity, timeFrame["securityType"])
@@ -43,14 +44,15 @@ class DataFetcher():
 		except:
 			print("RECIEVE: Incorrect RabbitMQ message format")
 
-
+	# To get Tickers by RabbitMQMessage
 	def callback(self, ch, method, properties, body):
 		equityCall = body.decode("utf8").replace("\'", "\"")
 		equityCall = json.loads(equityCall)
 
 		self.process(equityCall)
 
-
+	# ticker = company name
+	# df = stock market data from Quandl
 	def getData(self, equityCall, ticker, securityType):
 		# Makes Quandl API call for ticker as provided by RabbitMQMessage
 		df = quandl.get(
@@ -62,8 +64,9 @@ class DataFetcher():
 		# Multiply values by 10000 to fit Lean format
 		for header in df.columns[0:4].tolist():
 		        df[header] = df[header].apply(lambda x: int(x * 10000))
-
+		# make them int
 		df["Volume"] = df["Volume"].apply(lambda x: int(x))
+		# change time format to fit Lean format
 		df.index = pandas.to_datetime(df.index,
 		        format='%m/%d/%Y').strftime('%Y%m%d 00:00')
 
@@ -80,6 +83,7 @@ class DataFetcher():
 		return df
 
 
+	# save data into data directory for backtest
 	def writeData(self, equityCall, ticker, securityType):
 		# If path for equity does not exist create one
 		outname = ticker.lower() + ".csv"
@@ -108,31 +112,7 @@ class DataFetcher():
 		fullname = os.path.join(outdir, outname)
 		zipname = os.path.join(outdir, zipname)
 
-		# Makes Quandl API call for ticker as provided by RabbitMQMessage
-		df = quandl.get(
-			MARKET_DICT[securityType] + ticker,
-			start_date=equityCall["startTime"],
-			end_date=equityCall["endTime"],
-			api_key=API_KEY)
-
-		# Multiply values by 10000 to fit Lean format
-		for header in df.columns[0:4].tolist():
-			df[header] = df[header].apply(lambda x: int(x * 10000))
-
-		df["Volume"] = df["Volume"].apply(lambda x: int(x))
-		df.index = pandas.to_datetime(df.index,
-			format = '%m/%d/%Y').strftime('%Y%m%d 00:00')
-
-		# Drop unused columns from dataframe
-		df = df.drop(["Ex-Dividend",
-				"Split Ratio",
-				"Adj. Open",
-				"Adj. High",
-				"Adj. Low",
-				"Adj. Close",
-				"Adj. Volume"],
-				axis=1)
-
+		df = self.getData(equityCall, ticker, securityType)
 		print(df)
 
 		# Write csvzip to path
