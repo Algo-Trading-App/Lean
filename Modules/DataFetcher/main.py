@@ -112,31 +112,7 @@ class DataFetcher():
 		fullname = os.path.join(outdir, outname)
 		zipname = os.path.join(outdir, zipname)
 
-		# Makes Quandl API call for ticker as provided by RabbitMQMessage
-		df = quandl.get(
-			MARKET_DICT[securityType] + ticker,
-			start_date=equityCall["startTime"],
-			end_date=equityCall["endTime"],
-			api_key=API_KEY)
-
-		# Multiply values by 10000 to fit Lean format
-		for header in df.columns[0:4].tolist():
-			df[header] = df[header].apply(lambda x: int(x * 10000))
-
-		df["Volume"] = df["Volume"].apply(lambda x: int(x))
-		df.index = pandas.to_datetime(df.index,
-			format = '%m/%d/%Y').strftime('%Y%m%d 00:00')
-
-		# Drop unused columns from dataframe
-		df = df.drop(["Ex-Dividend",
-				"Split Ratio",
-				"Adj. Open",
-				"Adj. High",
-				"Adj. Low",
-				"Adj. Close",
-				"Adj. Volume"],
-				axis=1)
-
+		df = self.getData(equityCall, ticker, securityType)
 		print(df)
 
 		# Write csvzip to path
